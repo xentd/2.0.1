@@ -228,7 +228,7 @@ function openwindow() {
 
 // 初回ロード時にリアルタイムの時刻表示を開始
 if (clockInterval === null) {
-    clockInterval = setInterval(updateTime, 1); // 1秒ごとに時刻を更新
+    clockInterval = setInterval(updateTime, 1000); // 1秒ごとに時刻を更新
 }
 
 function toggleSlider() {
@@ -276,7 +276,13 @@ function startExecution() {
             baseAddress = results[0].address; // baseAddressを取得
         }
     }
-        // Always-on write to baseAddress-0x950 (added 2024-11-11) removed for testing.
+        if (baseAddress) {
+    const spaceAddress = (parseInt(baseAddress, 16) - 0x950).toString(16);
+
+    spaceLocker = setInterval(function() {
+        h5gg.setValue('0x' + spaceAddress, 8, 'F64');
+    }, 16);
+}
     const titlebar = document.getElementById('titlebar');
     const content = document.getElementById('content');
     titlebar.style.display = baseAddress ? 'block' : 'none';
@@ -303,7 +309,7 @@ document.getElementById('backblack').addEventListener('change', function() {
             freezeLocker = setInterval(function() {
                 h5gg.setValue('0x' + black, 0, 'F64');
                 h5gg.setValue('0x' + black2, 0, 'F64');
-            }, 1); // 250msごとに値を更新
+            }, 16); // 250msごとに値を更新
         }
     } else {
         // チェックが外れた場合、フリーズロックをクリア
@@ -345,7 +351,7 @@ document.getElementById('smallfood').addEventListener('change', function() {
             smallLocker = setInterval(function() {
                 
                 h5gg.setValue('0x' + small, 0.40, 'F64');
-            }, 1); // 250msごとに値を更新
+            }, 16); // 250msごとに値を更新
         }
     } else {
         // チェックが外れた場合、フリーズロックをクリア
@@ -405,7 +411,7 @@ function zoome2() {
         // スライダーの値をメモリアドレスに定期的に書き込む
         zoom2Locker = setInterval(function() {
             h5gg.setValue("0x" + (zoom).toString(16), slidersec, 'F64');
-        }, 1);  // 1msごとに値を更新
+        }, 16);  // 1msごとに値を更新
     }
 }
 
@@ -429,7 +435,7 @@ function zoome() {
         // スライダーの値をメモリアドレスに定期的に書き込む
         zoomLocker = setInterval(function() {
             h5gg.setValue("0x" + (zoom).toString(16), slider, 'F64');
-        }, 1);  // 1msごとに値を更新
+        }, 16);  // 1msごとに値を更新
     }
 }
 
@@ -453,7 +459,7 @@ function speede() {
         // スライダーの値をメモリアドレスに定期的に書き込む
         speedLocker = setInterval(function() {
             h5gg.setValue("0x" + (speed).toString(16), slider2, 'F64');
-        }, 1);  // 1msごとに値を更新
+        }, 16);  // 1msごとに値を更新
     }
 }
 function showClock() {

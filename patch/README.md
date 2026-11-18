@@ -12,3 +12,10 @@ That account was renamed to YUPA-TT, and GitHub Pages doesn't redirect old usern
 **Re-sign the IPA before installing** (Esign, Scarlet, etc.). Changing a file breaks the old signature.
 
 Rebuild from an original IPA: `patch/build.sh original.ipa patch/slither.io_2.0.2_fixed.ipa`
+
+## Closest to the original: `slither.io_2.0.2_yupa-tt.ipa`
+
+The original IPA with one line changed in `H5Menu.html`:
+`tabemaru-hage.github.io` → `yupa-tt.github.io` (same account, renamed).
+It loads Tabemaru's live menu exactly as the old IPA did, with no loader or fallback.
+Source: `H5Menu.original-renamed.html`.

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ModMenu</title>
+<style>
+  body { margin: 0; background: #111; color: #eee; font: 15px -apple-system, sans-serif;
+         display: flex; align-items: center; justify-content: center; min-height: 100vh; text-align: center; }
+  button { margin-top: 12px; padding: 8px 18px; border: 0; border-radius: 8px; background: #3a7; color: #fff; font-size: 15px; }
+</style>
+</head>
+<body>
+<div id="msg">Loading menu…</div>
+<script>
+// Menu hosts, tried in order. The first one that answers wins.
+// Primary: xentd's GitHub Pages. Backup: Tabemaru's site (renamed from tabemaru-hage to YUPA-TT).
+var MENUS = [
+  'https://xentd.github.io/2.0.1/',
+  'https://yupa-tt.github.io/2.0.1/'
+];
+var TIMEOUT_MS = 6000;
+
+function check(url) {
+  return new Promise(function (resolve, reject) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', url + '?t=' + Date.now(), true);
+    xhr.timeout = TIMEOUT_MS;
+    xhr.onload = function () { xhr.status >= 200 && xhr.status < 400 ? resolve(url) : reject(); };
+    xhr.onerror = xhr.ontimeout = function () { reject(); };
+    xhr.send();
+  });
+}
+
+function tryMenus(i) {
+  if (i >= MENUS.length) {
+    document.getElementById('msg').innerHTML =
+      'Menu could not be loaded.<br>Check your internet connection.<br><button onclick="start()">Retry</button>';
+    return;
+  }
+  check(MENUS[i]).then(function (url) { location.href = url; },
+                       function () { tryMenus(i + 1); });
+}
+
+function start() {
+  document.getElementById('msg').textContent = 'Loading menu…';
+  tryMenus(0);
+}
+start();
+</script>
+</body>
+</html>

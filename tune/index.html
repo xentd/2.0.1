@@ -187,53 +187,17 @@ Once you play AI or online, click the button in play or on the Home Screen
             <span style="line-height: 20px;">Zoom</span>
         </label>
         <input type="range" name="range" value="0.70" min="0.01" max="1.0" step="0.01" id="zzom" class="inputRange" disabled />
-      
+        <hr>
+        <div class="intro">Control tuning</div>
+        <div style="font-size: 13px; margin: 4px 0;">Steering value: <b id="ctrlShow">8</b> <span style="opacity:.7">(Tabemaru: 8)</span></div>
+        <input type="range" min="0" max="20" step="0.5" value="8" id="ctrlVal" class="inputRange" />
+        <label class="checkboxItem">
+            <input type="checkbox" id="ctrlOff" class="checkbox" />
+            Off (don't write it)
+        </label>
+        <div style="font-size: 12px; opacity: .8; margin-top: 4px;">Timer rate: <span id="ctrlRate">…</span>/s</div>
     </div>
 
-    <script>
-// ---- Turbo writer (test build) ----------------------------------------
-// The menu holds cheat values by rewriting them with setInterval(fn, 1).
-// iOS may run those timers far less often than 1 ms. This replaces every
-// 1 ms interval with a MessageChannel pump that reruns them back to back,
-// once per real millisecond (iOS clamps setInterval to 4 ms or slower).
-// The title bar shows two rates: T = turbo passes/s, I = what a plain
-// 1 ms setInterval actually achieves on this phone.
-(function () {
-  var nativeSet = window.setInterval, nativeClear = window.clearInterval;
-  var tasks = {}, nextId = 1e6, running = false, passes = 0, probe = 0;
-  var ch = new MessageChannel();
-  var STEP_MS = 1, last = 0;   // one pass per real millisecond
-  var now = (window.performance && performance.now) ? function () { return performance.now(); } : Date.now;
-  ch.port1.onmessage = function () {
-    var any = false; for (var k in tasks) { any = true; break; }
-    if (!any) { running = false; return; }
-    var t = now();
-    if (t - last >= STEP_MS) {
-      last = t; passes++;
-      for (var j in tasks) { try { tasks[j](); } catch (e) {} }
-    }
-    ch.port2.postMessage(0);
-  };
-  window.setInterval = function (fn, ms) {
-    if (typeof fn === 'function' && (ms === undefined || ms <= 1)) {
-      var id = nextId++; tasks[id] = fn;
-      if (!running) { running = true; ch.port2.postMessage(0); }
-      return id;
-    }
-    return nativeSet.apply(window, arguments);
-  };
-  window.clearInterval = function (id) {
-    if (id in tasks) { delete tasks[id]; return; }
-    return nativeClear.apply(window, arguments);
-  };
-  nativeSet(function () { probe++; }, 1);
-  window.__turboRate = '';
-  nativeSet(function () {
-    window.__turboRate = ' T' + passes + ' I' + probe;
-    passes = 0; probe = 0;
-  }, 1000);
-})();
-</script>
     <script>
 let baseAddress = null; // baseAddress の初期値
 let zoomLocker = null; // ズーム用のロック用変数
@@ -257,7 +221,7 @@ function updateTime() {
     const timeString = + month + "/" + day + "&nbsp" +nowHour + ":" + nowMin;
 
     // ウィンドウの開閉状態に応じて表示を切り替え
-    ttt.innerHTML = (isVisible ? "&nbsp;🎅&nbsp;Slither.io " : "&nbsp;🫎&nbsp;Slither.io ") + timeString + (window.__turboRate || '');
+    ttt.innerHTML = isVisible ? "&nbsp;🎅&nbsp;Slither.io " + timeString : "&nbsp;🫎&nbsp;Slither.io " + timeString;
 }
 
 function openwindow() {
@@ -272,7 +236,7 @@ function openwindow() {
 
 // 初回ロード時にリアルタイムの時刻表示を開始
 if (clockInterval === null) {
-    clockInterval = setInterval(updateTime, 500); // 1秒ごとに時刻を更新
+    clockInterval = setInterval(updateTime, 1); // 1秒ごとに時刻を更新
 }
 
 function toggleSlider() {
@@ -324,7 +288,7 @@ function startExecution() {
     const spaceAddress = (parseInt(baseAddress, 16) - 0x950).toString(16);
 
     spaceLocker = setInterval(function() {
-        h5gg.setValue('0x' + spaceAddress, 8, 'F64');
+        if (!ctrl.off) h5gg.setValue('0x' + spaceAddress, ctrl.val, 'F64');
     }, 1);
 }
     const titlebar = document.getElementById('titlebar');
@@ -529,6 +493,31 @@ function hide() {
         setButtonImage("https://raw.githubusercontent.com/TABEMARU-HAGE/HTML-JavaScript-CSS/refs/heads/main/3_20240828162441.png");
     }
 }
+
+// ---- Control tuning (added by xentd) ----
+var ctrl = { val: 8, off: false };
+try {
+    var saved = JSON.parse(localStorage.getItem('ctrlTuning') || 'null');
+    if (saved && typeof saved.val === 'number') { ctrl.val = saved.val; ctrl.off = !!saved.off; }
+} catch (e) {}
+function ctrlSave() { try { localStorage.setItem('ctrlTuning', JSON.stringify(ctrl)); } catch (e) {} }
+function ctrlRender() {
+    document.getElementById('ctrlVal').value = ctrl.val;
+    document.getElementById('ctrlShow').textContent = ctrl.off ? 'off' : ctrl.val;
+    document.getElementById('ctrlOff').checked = ctrl.off;
+}
+document.getElementById('ctrlVal').addEventListener('input', function () {
+    ctrl.val = parseFloat(this.value); ctrlRender(); ctrlSave();
+});
+document.getElementById('ctrlOff').addEventListener('change', function () {
+    ctrl.off = this.checked; ctrlRender(); ctrlSave();
+});
+ctrlRender();
+(function () {
+    var n = 0;
+    setInterval(function () { n++; }, 1);
+    setInterval(function () { document.getElementById('ctrlRate').textContent = n; n = 0; }, 1000);
+})();
 
 // 初期設定
 setWindowRect(500, 60, 300, 215);

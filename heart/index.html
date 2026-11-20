@@ -53,13 +53,16 @@ body.clean #br .row:hover,body.clean #br .row:focus-within{opacity:1}
 /* caption under the particle typography */
 #caption{text-align:center;width:min(92vw,700px);z-index:2;padding:6px 0 10px;background:radial-gradient(closest-side,rgba(6,1,11,.72),rgba(6,1,11,0))}
 #cap-word{font-family:var(--word);font-weight:500;font-size:clamp(13px,1.6vw,18px);letter-spacing:.04em;color:#fff;text-shadow:0 0 10px var(--tint),0 0 28px var(--tint)}
+#cap-word.script{font-family:var(--script);font-weight:400;font-size:clamp(30px,4.2vw,50px);letter-spacing:0;line-height:1.25;text-shadow:0 0 12px var(--tint),0 0 34px var(--tint)}
+#cap-word.write{animation:write 3s cubic-bezier(.5,0,.2,1) both}
+@keyframes write{from{clip-path:inset(-30% 100% -30% 0)}to{clip-path:inset(-30% 0 -30% 0)}}
 #cap-meta{margin-top:.5em;font-size:10px;letter-spacing:.34em;text-transform:uppercase;color:var(--blush)}
 #cap-meta b{color:#fff;font-weight:500}
 #sig{display:block;margin:2px auto 0;width:min(260px,60vw);height:auto;overflow:visible}
 #sig[hidden]{display:none}
 #sig text.name{font-family:var(--script);font-size:66px;fill:transparent;stroke:#fff;stroke-width:1.1;stroke-dasharray:700;stroke-dashoffset:700;filter:drop-shadow(0 0 6px var(--rose))}
 #sig text.lead{font-family:var(--mono);font-size:10px;letter-spacing:.34em;fill:var(--blush);text-transform:uppercase}
-#sig.draw text.name{animation:sign 2.6s cubic-bezier(.6,.05,.3,1) forwards,ink 1.2s 2s ease forwards}
+#sig.draw text.name{animation:sign 2.6s 2.6s cubic-bezier(.6,.05,.3,1) both,ink 1.2s 4.6s ease forwards}
 @keyframes sign{to{stroke-dashoffset:0}}
 @keyframes ink{to{fill:#fff}}
 
@@ -115,6 +118,14 @@ button.nova{border-color:#fff;color:#fff;box-shadow:0 0 14px rgba(255,46,99,.35)
 #boot .track{height:2px;background:var(--hair);margin-top:16px;position:relative}
 #boot .track i{position:absolute;inset:0 auto 0 0;width:0;background:var(--rose);box-shadow:0 0 12px var(--rose)}
 #boot .pct{display:flex;justify-content:space-between;gap:12px;margin-top:8px;font-variant-numeric:tabular-nums;color:#fff}
+#gate{margin-top:6px;display:flex;flex-direction:column;align-items:flex-start;gap:12px}
+#gate[hidden]{display:none}
+#begin{font-size:12px;padding:14px 22px;letter-spacing:.3em;border-color:var(--rose);background:rgba(255,46,99,.2);box-shadow:0 0 24px rgba(255,46,99,.35);animation:breathe 2.4s ease-in-out infinite}
+@keyframes breathe{50%{box-shadow:0 0 42px rgba(255,46,99,.7)}}
+#begin-quiet{background:none;border:0;padding:4px 0;color:var(--dim);letter-spacing:.24em;font-size:10px;backdrop-filter:none}
+#begin-quiet:hover{color:#fff;box-shadow:none}
+.gate-hint{margin:0;font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--dim)}
+#boot.ready .track,#boot.ready .pct,#boot.ready #boot-log{display:none}
 #boot .from{margin-top:28px;font-size:10px;letter-spacing:.4em;text-transform:uppercase}
 #boot .from b{color:#fff;font-weight:500}
 
@@ -131,12 +142,12 @@ button.nova{border-color:#fff;color:#fff;box-shadow:0 0 14px rgba(255,46,99,.35)
   #tl .ded span{font-size:28px}
   #intro-bottom{letter-spacing:.2em}
 }
-@media (prefers-reduced-motion:reduce){#sig.draw text.name{animation-duration:.01s,.01s;animation-delay:0s,0s}}
+@media (prefers-reduced-motion:reduce){#sig.draw text.name,#cap-word.write{animation-duration:.01s;animation-delay:0s}}
 #fail[hidden]{display:none}
 #fail{position:fixed;inset:0;display:grid;place-items:center;text-align:center;padding:24px;font-size:13px;color:var(--blush);z-index:60;background:var(--void)}
 </style>
 
-<canvas id="stage" aria-label="A 3D heart made of light, engraved with the name Annabelle, that opens to say I love you in 20 languages. Made by xented."></canvas>
+<canvas id="stage" class="" aria-label="A 3D heart made of light, engraved with the name Annabelle, that opens to say I love you in 20 languages. Made by xented."></canvas>
 <canvas id="rain" aria-hidden="true"></canvas>
 <div class="lb" id="lb-top"></div><div class="lb" id="lb-bot"></div>
 <div id="words" aria-hidden="true"></div>
@@ -155,7 +166,7 @@ button.nova{border-color:#fff;color:#fff;box-shadow:0 0 14px rgba(255,46,99,.35)
 <div class="hud" id="tl">
   <div class="ded">for <span>Annabelle</span></div>
   <div class="by">made by <b>xented</b></div>
-  <div class="ver">AMOR.CORE · v6</div>
+  <div class="ver">AMOR.CORE · v7</div>
 </div>
 <div class="hud" id="tr">
   <div id="bpm">064<small>BPM</small></div><canvas id="ecg"></canvas>
@@ -176,7 +187,7 @@ button.nova{border-color:#fff;color:#fff;box-shadow:0 0 14px rgba(255,46,99,.35)
     <button id="sound" type="button" aria-pressed="false">Sound off</button>
     <button id="cine" type="button" aria-pressed="false">Cinematic</button>
     <button id="nova" class="nova" type="button">Supernova</button>
-    <button id="clean" type="button" aria-pressed="false">Hide HUD</button>
+    <button id="clean" type="button" aria-pressed="true">Show HUD</button>
     <button id="toggle" class="primary" type="button">Open heart</button>
   </div>
 </div>
@@ -187,6 +198,11 @@ button.nova{border-color:#fff;color:#fff;box-shadow:0 0 14px rgba(255,46,99,.35)
   <div id="boot-log">&gt; mounting cardiac engine</div>
   <div class="track"><i id="boot-bar"></i></div>
   <div class="pct"><span id="boot-step">initializing</span><span id="boot-pct">000%</span></div>
+  <div id="gate" hidden>
+    <button id="begin" type="button">Open your gift</button>
+    <p class="gate-hint">best with sound on</p>
+    <button id="begin-quiet" type="button">or begin without sound</button>
+  </div>
   <div class="from">made by <b>xented</b></div>
 </div></div>
 <div id="fail" hidden></div>
@@ -217,7 +233,9 @@ button.nova{border-color:#fff;color:#fff;box-shadow:0 0 14px rgba(255,46,99,.35)
 const CONFIG = Object.freeze({
   to: "Annabelle",
   from: "xented",
-  version: "6.0",
+  letter: "Every language, and it still means you.",
+  song: "song.mp3",          // optional: published beside the page; falls back to the built-in synth
+  version: "7.0",
   languages: [
     ["en","English","I love you"],["es","Español","Te amo"],["fr","Français","Je t’aime"],["de","Deutsch","Ich liebe dich"],
     ["it","Italiano","Ti amo"],["pt","Português","Eu te amo"],["ru","Русский","Я тебя люблю"],["ja","日本語","愛してる"],
@@ -226,7 +244,7 @@ const CONFIG = Object.freeze({
     ["pl","Polski","Kocham cię"],["id","Bahasa Indonesia","Aku cinta kamu"],["sw","Kiswahili","Nakupenda"],["tl","Tagalog","Mahal kita"]
   ],
   timing: { bootMin: 2.8, prologue: 3.4, fontWait: 3.5, assemble: 3.4, autoOpen: 3.2, morph: 1.7,
-            hold: { name: 5.2, lang: 3.4, custom: 4.6, finale: 9.5 } },
+            hold: { name: 5.2, lang: 3.4, custom: 4.6, finale: 12 } },
   heartDepth: 0.78,
   // hue stops on the palette: 0 crimson · .25 magenta · .5 violet · .75 rose gold
   hue: { sealed: 0.9, name: 0.8, custom: 0.55, finale: 0.82,
@@ -903,8 +921,10 @@ const pin = (() => {
 // caption with glyph scramble and the hand-drawn signature
 const Caption = (() => {
   const word = $("cap-word"), meta = $("cap-meta"), sig = $("sig"), GLYPH = "01アイラブ♥ΣΔЖ爱사ح<>/{}#*"; let scr = null;
-  function set(text, metaHtml, lang) {
+  function set(text, metaHtml, lang, script = false) {
     if (lang) word.lang = lang; else word.removeAttribute("lang");
+    word.classList.toggle("script", script); word.classList.remove("write");
+    if (script) { word.textContent = text; void word.offsetWidth; word.classList.add("write"); meta.innerHTML = metaHtml; meta.hidden = !metaHtml; scr = null; return; }
     word.dir = isRTL(text) ? "rtl" : "ltr"; meta.innerHTML = metaHtml; meta.hidden = !metaHtml;
     if (ENV.reduce) { word.textContent = text; scr = null; } else scr = { chars: Array.from(text), t: 0, dur: 0.8 };
   }
@@ -924,7 +944,9 @@ const Caption = (() => {
 
 /* ═════════════ 9 · Audio (synth + convolution reverb) ═════════════ */
 const Audio = (() => {
-  let ctx = null, on = false, master, wet, padFilter, noise;
+  let ctx = null, on = false, master, wet, padFilter, padGain, noise, songGain = null, analyser = null, bins = null, hasSong = false;
+  // start downloading the song immediately; decoding waits for the first tap
+  const songBytes = CONFIG.song ? fetch(CONFIG.song).then(r => r.ok ? r.arrayBuffer() : null).catch(() => null) : Promise.resolve(null);
   const PENTA = [0, 2, 4, 7, 9];
   function impulse(sec = 3.4, decay = 2.8) {
     const len = ctx.sampleRate*sec, b = ctx.createBuffer(2, len, ctx.sampleRate);
@@ -936,7 +958,7 @@ const Audio = (() => {
     master = ctx.createGain(); master.gain.value = 0; master.connect(ctx.destination);
     const verb = ctx.createConvolver(); verb.buffer = impulse(); wet = ctx.createGain(); wet.gain.value = 0.55; wet.connect(verb); verb.connect(master);
     padFilter = ctx.createBiquadFilter(); padFilter.type = "lowpass"; padFilter.frequency.value = 500; padFilter.Q.value = 4;
-    const pad = ctx.createGain(); pad.gain.value = 0.03; padFilter.connect(pad); pad.connect(master); pad.connect(wet);
+    const pad = padGain = ctx.createGain(); pad.gain.value = 0.03; padFilter.connect(pad); pad.connect(master); pad.connect(wet);
     [110, 138.59, 164.81, 220.5, 277.2].forEach((f, i) => [-6, 6].forEach(det => {
       const o = ctx.createOscillator(); o.type = i < 3 ? "sawtooth" : "triangle"; o.frequency.value = f; o.detune.value = det; o.connect(padFilter); o.start(); }));
     const lfo = ctx.createOscillator(), lg = ctx.createGain(); lfo.frequency.value = 0.08; lg.gain.value = 220; lfo.connect(lg); lg.connect(padFilter.frequency); lfo.start();
@@ -948,7 +970,32 @@ const Audio = (() => {
     o.connect(g); g.connect(master); g.connect(wet); o.start(t); o.stop(t + rel + 0.05);
   }
   const note = i => 880*Math.pow(2, (PENTA[i%5] + 12*Math.floor((i%10)/5))/12);
+  async function startSong() {
+    const bytes = await songBytes; if (!bytes) return false;
+    try {
+      const buffer = await new Promise((res, rej) => ctx.decodeAudioData(bytes.slice(0), res, rej));
+      const src = ctx.createBufferSource(); src.buffer = buffer; src.loop = true;
+      songGain = ctx.createGain(); songGain.gain.value = 0.0001;
+      analyser = ctx.createAnalyser(); analyser.fftSize = 512; analyser.smoothingTimeConstant = 0.82; bins = new Uint8Array(analyser.frequencyBinCount);
+      src.connect(songGain); songGain.connect(analyser); analyser.connect(master);
+      src.start(); songGain.gain.exponentialRampToValueAtTime(0.85, ctx.currentTime + 5);
+      padGain.gain.setTargetAtTime(0, ctx.currentTime, 0.5); hasSong = true; return true;
+    } catch (e) { return false; }
+  }
   return {
+    /** Called from the first tap: unlocks audio, then plays the song if one was published. */
+    async start(withSound) {
+      try { if (!ctx) init(); if (ctx.resume) await ctx.resume(); } catch (e) { ctx = null; return false; }
+      on = withSound; master.gain.setTargetAtTime(on ? 0.9 : 0, ctx.currentTime, 0.4);
+      return startSong();
+    },
+    get hasSong() { return hasSong; },
+    /** Low-frequency energy of the song, 0–1; 0 when no song is playing. */
+    level() {
+      if (!analyser || !on) return 0; analyser.getByteFrequencyData(bins);
+      let sum = 0; for (let i = 1; i < 10; i++) sum += bins[i]; return sum / (9*255);
+    },
+    swell(up) { if (songGain) songGain.gain.setTargetAtTime(up ? 1 : 0.85, ctx.currentTime, 1.2); },
     toggle() {
       try { if (!ctx) init(); if (ctx.resume) ctx.resume(); } catch (e) { ctx = null; }
       on = !on && !!ctx; if (ctx) master.gain.setTargetAtTime(on ? 0.9 : 0, ctx.currentTime, 0.12); return on;
@@ -957,7 +1004,7 @@ const Audio = (() => {
     resume() { if (ctx && on && ctx.resume) ctx.resume(); },
     filter(open, nova) { if (on) padFilter.frequency.setTargetAtTime(500 + open*900 + nova*2500, ctx.currentTime, 0.3); },
     thump(strength) {
-      if (!on) return; const t = ctx.currentTime, o = ctx.createOscillator(), g = ctx.createGain(), f = ctx.createBiquadFilter();
+      if (!on) return; if (hasSong) strength *= 0.35; const t = ctx.currentTime, o = ctx.createOscillator(), g = ctx.createGain(), f = ctx.createBiquadFilter();
       o.frequency.setValueAtTime(72, t); o.frequency.exponentialRampToValueAtTime(34, t + 0.16); f.type = "lowpass"; f.frequency.value = 180;
       env(g, t, 0.8*strength, 0.012, 0.23); o.connect(f); f.connect(g); g.connect(master); o.start(t); o.stop(t + 0.26);
     },
@@ -997,7 +1044,7 @@ const Director = (() => {
 
   const toggleBtn = $("toggle"), chan = $("t-lang");
   function show(item) {
-    timer = 0; Caption.signature(false); state.activeLang = -1; state.focus = item.type === "lang" ? 0 : 1; state.pulse = 1;
+    timer = 0; Caption.signature(false); state.activeLang = -1; state.focus = item.type === "lang" ? 0.35 : 1; state.pulse = 1; Audio.swell(item.type === "finale");
     document.body.classList.toggle("cinema", item.type === "finale");
     switch (item.type) {
       case "name":
@@ -1016,7 +1063,7 @@ const Director = (() => {
         chan.textContent = "MESSAGE"; glitch(0.6); shock(0.6); for (let i = 0; i < 4; i++) randomFirework(); Audio.chord();
         break;
       case "finale":
-        hold = T.hold.finale; TEXT.morphTo(CONFIG.to, true); state.hueTarget = CONFIG.hue.finale; Caption.set("I love you, in every language", ""); Caption.signature(true);
+        hold = T.hold.finale; TEXT.morphTo(CONFIG.to, true); state.hueTarget = CONFIG.hue.finale; Caption.set(CONFIG.letter, "", undefined, true); Caption.signature(true);
         chan.textContent = "FINALE"; barrage = 10; barrageT = 0; state.flash = 0.5; state.warp = 1; shock(1); Audio.arpeggio();
         log(`<span class="k">&gt;</span> finale --for "${esc(CONFIG.to)}"`); log(`<span class="ok">[ok]</span> signed: ${esc(CONFIG.from)} ♥`);
         break;
@@ -1067,6 +1114,21 @@ const Director = (() => {
     fontsReady = true;
   })();
 
+  /** The first tap: unlock audio (and the song), then roll the prologue. */
+  async function begin(withSound) {
+    if (stage !== "gate") return;
+    stage = "prologue"; stageT = 0; $("boot").classList.add("gone"); glitch(0.6); Quality.armed = true; document.body.classList.add("cinema");
+    TEXT.morphTo(CONFIG.to, true); TEXT.finish(); chan.textContent = "SEALED";
+    if (!ENV.small && document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(() => {});
+    log(`<span class="k">&gt;</span> boot amor.core v${CONFIG.version} --webgl --bloom --chroma`);
+    log(`<span class="k">&gt;</span> dedicate --to "${esc(CONFIG.to)}" --from "${esc(CONFIG.from)}"`);
+    log(`<span class="ok">[ok]</span> ${(COUNT.shell + COUNT.core + COUNT.text).toLocaleString("en")} particles online`);
+    log(`<span class="k">&gt;</span> heart.trace()`);
+    const song = await Audio.start(withSound);
+    setSoundButton(withSound);
+    if (song) log(`<span class="ok">[ok]</span> now playing · for ${esc(CONFIG.to)}`);
+  }
+
   function update(dt) {
     stageT += dt;
     if (stage === "boot") {
@@ -1075,13 +1137,10 @@ const Director = (() => {
       $("boot-bar").style.width = (p*100) + "%"; $("boot-pct").textContent = pad(Math.floor(p*100), 3) + "%";
       $("boot-step").textContent = step; $("boot-log").textContent = "> " + step;
       if (p >= 1 && fontsReady) {
-        stage = "prologue"; stageT = 0; $("boot").classList.add("gone"); glitch(0.6); Quality.armed = true; document.body.classList.add("cinema");
-        TEXT.morphTo(CONFIG.to, true); TEXT.finish(); chan.textContent = "SEALED";
-        log(`<span class="k">&gt;</span> boot amor.core v${CONFIG.version} --webgl --bloom --chroma`);
-        log(`<span class="k">&gt;</span> dedicate --to "${esc(CONFIG.to)}" --from "${esc(CONFIG.from)}"`);
-        log(`<span class="ok">[ok]</span> ${(COUNT.shell + COUNT.core + COUNT.text).toLocaleString("en")} particles online`);
-        log(`<span class="k">&gt;</span> heart.trace()`);
+        stage = "gate"; $("boot").classList.add("ready"); $("gate").hidden = false; $("begin").focus({ preventScroll: true });
       }
+    } else if (stage === "gate") {
+      U.uScatter.value = 1;
     } else if (stage === "prologue") {
       U.uScatter.value = 1; U.uTraceOn.value = 1; U.uOutline.value = clamp(stageT*2);
       U.uTrace.value = ease(clamp(stageT / (T.prologue - 0.8)));
@@ -1100,7 +1159,7 @@ const Director = (() => {
     if (state.openTarget && state.wo > 0.6 && state.nova < 0) { timer += dt; if (timer > hold) next(); }
     if (barrage > 0) { barrageT -= dt; if (barrageT <= 0) { randomFirework(); barrage--; barrageT = 0.32; } }
   }
-  return { update, setOpen, supernova, beam, jumpToLang, next, get stage() { return stage; } };
+  return { update, setOpen, supernova, beam, jumpToLang, next, begin, get stage() { return stage; } };
 })();
 
 /* ═════════════ 11 · Input ═════════════ */
@@ -1115,17 +1174,18 @@ cineBtn.addEventListener("click", () => setCine(!state.cine));
 const cleanBtn = $("clean");
 function setClean(v) { state.clean = v; document.body.classList.toggle("clean", v); cleanBtn.textContent = v ? "Show HUD" : "Hide HUD"; cleanBtn.setAttribute("aria-pressed", String(v)); }
 cleanBtn.addEventListener("click", () => setClean(!state.clean));
-$("sound").addEventListener("click", e => {
-  const btn = e.currentTarget, on = Audio.toggle(); btn.textContent = on ? "Sound on" : "Sound off"; btn.setAttribute("aria-pressed", String(on));
-  if (on) log(`<span class="ok">[ok]</span> synth + reverb online`);
-});
+setClean(true);   // romance first: the HUD is one tap away
+function setSoundButton(on) { const btn = $("sound"); btn.textContent = on ? "Sound on" : "Sound off"; btn.setAttribute("aria-pressed", String(on)); }
+$("sound").addEventListener("click", () => { const on = Audio.toggle(); setSoundButton(on); if (on) log(`<span class="ok">[ok]</span> audio online`); });
+$("begin").addEventListener("click", () => Director.begin(true));
+$("begin-quiet").addEventListener("click", () => Director.begin(false));
 $("msg").addEventListener("submit", e => {
   e.preventDefault(); const input = $("msg-in"), v = input.value.trim().slice(0, 24); if (!v) return;
   input.blur(); Director.beam(v);
 });
 addEventListener("keydown", e => {
   const tag = e.target.tagName;
-  if (tag === "INPUT") return;
+  if (tag === "INPUT" || Director.stage === "boot" || Director.stage === "gate") return;
   if (tag === "BUTTON" && (e.code === "Space" || e.key === "Enter")) return;
   if (e.code === "Space") { e.preventDefault(); Director.setOpen(!state.openTarget); }
   else if (e.key === "n" || e.key === "N") Director.supernova();
@@ -1191,7 +1251,7 @@ function frame() {
 
   // heartbeat: lub-dub with a tempo that rises as the heart opens
   state.bpm = 64 + 26*open + nv*60; state.phase += dt*state.bpm/60;
-  const p = state.phase % 1, b = state.beat = beatShape(p)*(ENV.reduce ? 0.4 : 1); U.uBeat.value = b;
+  const p = state.phase % 1, b = state.beat = beatShape(p)*(ENV.reduce ? 0.4 : 1); U.uBeat.value = Math.max(b, (state.bass || 0)*0.9);
   if (Math.floor(state.phase) !== Math.floor(state.lastPhase)) Audio.thump(1);
   if (state.lastPhase % 1 < 0.22 && p >= 0.22) Audio.thump(0.55);
   state.lastPhase = state.phase;
@@ -1203,7 +1263,8 @@ function frame() {
   state.warp = damp(state.warp, 0.06 + nv*0.8, 0.9, dt); U.uWarp.value = ENV.reduce ? 0.03 : state.warp;
   U.uMouseOn.value = damp(U.uMouseOn.value, ENV.reduce ? 0 : mouseTarget, 6, dt);
   FX.uGlitch.value = state.glitch + nv*0.25; FX.uFlash.value = state.flash; FX.uAberr.value = 0.0035 + b*0.004 + nv*0.02 + state.glitch*0.01;
-  if (bloom) bloom.strength = 0.95 + open*0.15 + b*0.3 + nv*1.4 + state.pulse*0.35;
+  const bass = state.bass = damp(state.bass || 0, Audio.level(), 8, dt);
+  if (bloom) bloom.strength = 0.95 + open*0.15 + b*0.3 + nv*1.4 + state.pulse*0.35 + bass*0.5;
 
   // colour: travel the palette the short way round and mirror it into CSS
   const dh = ((state.hueTarget - state.hue + 1.5) % 1) - 0.5;

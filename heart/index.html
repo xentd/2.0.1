@@ -22,7 +22,8 @@
   --script:"Great Vibes","Snell Roundhand","Brush Script MT",cursive;
   --mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
   --word:"Noto Sans",system-ui,"Segoe UI","Hiragino Sans","Apple SD Gothic Neo","Noto Sans CJK SC","Noto Sans Devanagari","Noto Sans Arabic",sans-serif;
-  --glow:0 0 8px var(--rose),0 0 24px rgba(255,46,99,.75),0 0 60px rgba(158,0,41,.9);
+  --tint:#ff2e63;
+  --glow:0 0 8px var(--tint),0 0 24px var(--tint),0 0 60px rgba(158,0,41,.9);
   color-scheme:dark;
 }
 html,body{height:100%}
@@ -31,14 +32,27 @@ body{background:var(--void);color:var(--plasma);overflow:hidden;font-family:var(
 #rain{position:fixed;inset:0;width:100%;height:100%;mix-blend-mode:screen;opacity:.36;pointer-events:none}
 .track3d{position:fixed;left:0;top:0;pointer-events:none;will-change:transform,opacity}
 
+/* cinema letterbox + clean view */
+.lb{position:fixed;left:0;right:0;height:0;background:#000;z-index:40;pointer-events:none;transition:height 1.4s cubic-bezier(.7,0,.2,1)}
+#lb-top{top:0;box-shadow:0 1px 0 rgba(255,46,99,.25)}
+#lb-bot{bottom:0;box-shadow:0 -1px 0 rgba(255,46,99,.25)}
+body.cinema .lb{height:9vh}
+#tl{z-index:41}
+#tr,#bl,#br,#hint,#msg,#br .row,#rain{transition:opacity .9s ease}
+body.cinema #tr,body.cinema #bl,body.cinema #br{opacity:0}
+body.clean #tr,body.clean #bl,body.clean #hint,body.clean #msg{opacity:0;pointer-events:none}
+body.clean #rain{opacity:.1}
+body.clean #br .row{opacity:.3}
+body.clean #br .row:hover,body.clean #br .row:focus-within{opacity:1}
+
 /* word ring */
-#words{position:fixed;inset:0;pointer-events:none;overflow:hidden}
+#words{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:1}
 #words span{position:absolute;left:0;top:0;white-space:nowrap;font-family:var(--word);font-weight:700;color:var(--plasma);text-shadow:var(--glow);pointer-events:auto;cursor:pointer;will-change:transform,opacity}
 #words span small{display:block;font-family:var(--mono);font-weight:300;font-size:.42em;letter-spacing:.22em;color:var(--blush);text-shadow:none;text-align:center;margin-top:.2em;opacity:.8}
 
 /* caption under the particle typography */
-#caption{text-align:center;width:min(92vw,700px)}
-#cap-word{font-family:var(--word);font-weight:500;font-size:clamp(13px,1.6vw,18px);letter-spacing:.04em;color:#fff;text-shadow:0 0 10px var(--rose)}
+#caption{text-align:center;width:min(92vw,700px);z-index:2;padding:6px 0 10px;background:radial-gradient(closest-side,rgba(6,1,11,.72),rgba(6,1,11,0))}
+#cap-word{font-family:var(--word);font-weight:500;font-size:clamp(13px,1.6vw,18px);letter-spacing:.04em;color:#fff;text-shadow:0 0 10px var(--tint),0 0 28px var(--tint)}
 #cap-meta{margin-top:.5em;font-size:10px;letter-spacing:.34em;text-transform:uppercase;color:var(--blush)}
 #cap-meta b{color:#fff;font-weight:500}
 #sig{display:block;margin:2px auto 0;width:min(260px,60vw);height:auto;overflow:visible}
@@ -110,6 +124,7 @@ button.nova{border-color:#fff;color:#fff;box-shadow:0 0 14px rgba(255,46,99,.35)
   #br{left:calc(18px + env(safe-area-inset-left,0px));align-items:stretch}
   #br .row{display:grid;grid-template-columns:1fr 1fr}
   #br .row button{padding:10px 6px;letter-spacing:.14em}
+  #br .row #toggle{grid-column:1/-1}
   #msg{width:100%}
   #hint,#tele,#tl .ver{display:none}
   #ecg{width:110px;height:34px}
@@ -123,6 +138,7 @@ button.nova{border-color:#fff;color:#fff;box-shadow:0 0 14px rgba(255,46,99,.35)
 
 <canvas id="stage" aria-label="A 3D heart made of light, engraved with the name Annabelle, that opens to say I love you in 20 languages. Made by xented."></canvas>
 <canvas id="rain" aria-hidden="true"></canvas>
+<div class="lb" id="lb-top"></div><div class="lb" id="lb-bot"></div>
 <div id="words" aria-hidden="true"></div>
 
 <div id="intro-top" class="track3d" aria-hidden="true"><div class="for">for</div><div class="name">Annabelle</div></div>
@@ -139,7 +155,7 @@ button.nova{border-color:#fff;color:#fff;box-shadow:0 0 14px rgba(255,46,99,.35)
 <div class="hud" id="tl">
   <div class="ded">for <span>Annabelle</span></div>
   <div class="by">made by <b>xented</b></div>
-  <div class="ver">AMOR.CORE · v5</div>
+  <div class="ver">AMOR.CORE · v6</div>
 </div>
 <div class="hud" id="tr">
   <div id="bpm">064<small>BPM</small></div><canvas id="ecg"></canvas>
@@ -154,12 +170,13 @@ button.nova{border-color:#fff;color:#fff;box-shadow:0 0 14px rgba(255,46,99,.35)
 </div>
 <div class="hud" id="bl"><div id="term"></div></div>
 <div class="hud" id="br">
-  <div id="hint">tap heart · drag to orbit · space · ← → · N supernova · C cinematic</div>
+  <div id="hint">tap heart · drag to orbit · space · ← → · N supernova · C cinematic · H hide HUD</div>
   <form id="msg" autocomplete="off"><input id="msg-in" maxlength="24" placeholder="Write something back…" aria-label="Write a message to spell in particles"><button type="submit">Beam</button></form>
   <div class="row">
     <button id="sound" type="button" aria-pressed="false">Sound off</button>
     <button id="cine" type="button" aria-pressed="false">Cinematic</button>
     <button id="nova" class="nova" type="button">Supernova</button>
+    <button id="clean" type="button" aria-pressed="false">Hide HUD</button>
     <button id="toggle" class="primary" type="button">Open heart</button>
   </div>
 </div>
@@ -200,7 +217,7 @@ button.nova{border-color:#fff;color:#fff;box-shadow:0 0 14px rgba(255,46,99,.35)
 const CONFIG = Object.freeze({
   to: "Annabelle",
   from: "xented",
-  version: "5.0",
+  version: "6.0",
   languages: [
     ["en","English","I love you"],["es","Español","Te amo"],["fr","Français","Je t’aime"],["de","Deutsch","Ich liebe dich"],
     ["it","Italiano","Ti amo"],["pt","Português","Eu te amo"],["ru","Русский","Я тебя люблю"],["ja","日本語","愛してる"],
@@ -208,9 +225,12 @@ const CONFIG = Object.freeze({
     ["tr","Türkçe","Seni seviyorum"],["nl","Nederlands","Ik hou van jou"],["el","Ελληνικά","Σ’ αγαπώ"],["sv","Svenska","Jag älskar dig"],
     ["pl","Polski","Kocham cię"],["id","Bahasa Indonesia","Aku cinta kamu"],["sw","Kiswahili","Nakupenda"],["tl","Tagalog","Mahal kita"]
   ],
-  timing: { bootMin: 2.8, fontWait: 3.5, assemble: 3.4, autoOpen: 3.2, morph: 1.7,
+  timing: { bootMin: 2.8, prologue: 3.4, fontWait: 3.5, assemble: 3.4, autoOpen: 3.2, morph: 1.7,
             hold: { name: 5.2, lang: 3.4, custom: 4.6, finale: 9.5 } },
-  heartDepth: 0.78
+  heartDepth: 0.78,
+  // hue stops on the palette: 0 crimson · .25 magenta · .5 violet · .75 rose gold
+  hue: { sealed: 0.9, name: 0.8, custom: 0.55, finale: 0.82,
+         langs: [0.02, 0.5, 0.74, 0.28, 0.6, 0.9, 0.42, 0.66, 0.16, 0.54] }
 });
 const LANGS = CONFIG.languages, NL = LANGS.length;
 
@@ -223,8 +243,8 @@ const ENV = (() => {
   };
 })();
 const COUNT = ENV.small
-  ? { shell:15000, core:2500, text:6000, dust:1500, stars:1200, floaters:120, streaks:320, helix:420, rungs:24, fwPer:220 }
-  : { shell:30000, core:4500, text:10000, dust:3000, stars:2400, floaters:240, streaks:720, helix:900, rungs:44, fwPer:420 };
+  ? { shell:15000, core:2500, text:6000, dust:1500, stars:1200, floaters:120, streaks:320, helix:420, rungs:24, fwPer:220, petals:70, bokeh:30, trail:260, outline:900 }
+  : { shell:30000, core:4500, text:10000, dust:3000, stars:2400, floaters:240, streaks:720, helix:900, rungs:44, fwPer:420, petals:180, bokeh:56, trail:480, outline:1800 };
 const FW_SLOTS = 8;
 
 /* ═════════════ 2 · Utilities ═════════════ */
@@ -236,6 +256,10 @@ const rand = (a = -1, b = 1) => a + Math.random() * (b - a);
 const pad = (n, l = 2) => String(n).padStart(l, "0");
 const esc = t => t.replace(/[&<>"]/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[c]));
 const isRTL = t => /[֐-ࣿ]/.test(t);
+
+const PAL = [[1,0.06,0.22],[1,0.12,0.62],[0.58,0.2,1],[1,0.58,0.42],[1,0.06,0.22]];
+/** CPU twin of the GLSL pal(): crimson → magenta → violet → rose gold → crimson. */
+function pal(t) { t = ((t % 1) + 1) % 1; const s = t*4, i = Math.min(3, Math.floor(s)), f = s - i, a = PAL[i], b = PAL[i+1]; return a.map((v, k) => v + (b[k] - v)*f); }
 
 function showFail(msg) {
   const f = $("fail"); f.textContent = msg; f.hidden = false; $("boot").classList.add("gone");
@@ -313,9 +337,15 @@ const Quality = {
 Object.assign(U, {
   uTime:{value:0}, uOpen:{value:0}, uBeat:{value:0}, uScatter:{value:1}, uPR:{value:1}, uSize:{value:22}, uCore:{value:0},
   uMouse:{value:new THREE.Vector3(99,99,99)}, uMouseOn:{value:0}, uShock:{value:9}, uNova:{value:0}, uWarp:{value:0.06},
-  uHelix:{value:0}, uHelixR:{value:3}, uFocus:{value:0}
+  uHelix:{value:0}, uHelixR:{value:3}, uFocus:{value:0},
+  uHue:{value:0.9}, uPetals:{value:0}, uTrace:{value:0}, uTraceOn:{value:0}, uOutline:{value:0}
 });
 const GLSL = `
+vec3 pal(float t){t=fract(t);float s=t*4.0;
+  vec3 a=mix(vec3(1.0,0.06,0.22),vec3(1.0,0.12,0.62),clamp(s,0.0,1.0));
+  a=mix(a,vec3(0.58,0.2,1.0),clamp(s-1.0,0.0,1.0));
+  a=mix(a,vec3(1.0,0.58,0.42),clamp(s-2.0,0.0,1.0));
+  return mix(a,vec3(1.0,0.06,0.22),clamp(s-3.0,0.0,1.0));}
 mat2 rot(float a){float c=cos(a),s=sin(a);return mat2(c,-s,s,c);}
 vec3 repel(vec3 p,vec3 m,float on){vec3 d=p-m;float l=length(d);return p+(d/(l+1e-4))*on*0.65*exp(-l*l*2.2);}
 `;
@@ -362,7 +392,7 @@ const heartGroup = new THREE.Group(); scene.add(heartGroup);
 
 // — the shell: assembles from a galaxy, beats, splits like a locket, reacts to shock, supernova and cursor
 points(buildHeart(COUNT.shell, false), additive(U, `
-  uniform float uTime,uOpen,uBeat,uScatter,uPR,uSize,uMouseOn,uShock,uNova,uFocus;uniform vec3 uMouse;
+  uniform float uTime,uOpen,uBeat,uScatter,uPR,uSize,uMouseOn,uShock,uNova,uFocus,uHue;uniform vec3 uMouse;
   attribute float aSide,aSize,aTone;attribute vec3 aRnd;varying vec3 vCol;varying float vA;
   ${GLSL}
   void main(){
@@ -386,7 +416,8 @@ points(buildHeart(COUNT.shell, false), additive(U, `
     vec4 mv=modelViewMatrix*vec4(p,1.0);gl_Position=projectionMatrix*mv;
     gl_PointSize=uSize*aSize*uPR*(1.0+uBeat*0.25+nv*0.8)/(-mv.z);
     vec3 deep=vec3(0.5,0.0,0.08),hot=vec3(1.0,0.1,0.32),white=vec3(1.0,0.86,0.92);
-    vec3 c=mix(deep,hot,aTone);c=mix(c,white,pow(aTone,9.0));
+    vec3 iri=mix(hot,pal(uHue+aTone*0.18+sin(uTime*0.4+position.y*2.0+position.x)*0.05),0.9);
+    vec3 c=mix(deep,iri,aTone);c=mix(c,white,pow(aTone,9.0));
     c+=white*seam*o*1.4+white*sh*1.5+vec3(1.0,0.5,0.7)*nv*1.2;
     c*=(0.7+uBeat*0.65+sc*0.6)*(1.0-0.5*o*(1.0-nv))*(1.0-0.5*uFocus);
     vCol=c;vA=0.8;
@@ -455,9 +486,9 @@ function seamPoint(sideSign, o, out) {
   return out.set(Math.sin(a)*zx + sideSign*o*1.05, y + o*0.12, Math.cos(a)*zx - 0.5);
 }
 const _A = new THREE.Vector3(), _B = new THREE.Vector3();
-function regenArcs(o) {
+function regenArcs(o, chance = 0.75) {
   for (const l of arcs) {
-    l.visible = o > 0.55 && Math.random() < 0.75; if (!l.visible) continue;
+    l.visible = o > 0.55 && Math.random() < chance; if (!l.visible) continue;
     seamPoint(-1, o, _A); seamPoint(1, o, _B);
     const p = l.geometry.attributes.position.array;
     for (let k = 0; k < ARC_PTS; k++) {
@@ -489,7 +520,8 @@ points(cloud(COUNT.stars, 40, 90), dustMat);
 // — living nebula sky
 const nebula = new THREE.Mesh(new THREE.SphereGeometry(140, 48, 32), new THREE.ShaderMaterial({ uniforms: U, side: THREE.BackSide, depthWrite: false, defines: { OCT: ENV.small ? 3 : 5 },
   vertexShader: `varying vec3 vDir;void main(){vDir=normalize(position);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`,
-  fragmentShader: `uniform float uTime,uOpen,uNova,uBeat;varying vec3 vDir;
+  fragmentShader: `uniform float uTime,uOpen,uNova,uBeat,uHue;varying vec3 vDir;
+    ${GLSL}
     float hash(vec3 p){p=fract(p*0.3183099+0.1);p*=17.0;return fract(p.x*p.y*p.z*(p.x+p.y+p.z));}
     float noise(vec3 x){vec3 i=floor(x),f=fract(x);f=f*f*(3.0-2.0*f);
       return mix(mix(mix(hash(i),hash(i+vec3(1,0,0)),f.x),mix(hash(i+vec3(0,1,0)),hash(i+vec3(1,1,0)),f.x),f.y),
@@ -500,6 +532,7 @@ const nebula = new THREE.Mesh(new THREE.SphereGeometry(140, 48, 32), new THREE.S
       vec3 col=mix(vec3(0.015,0.0,0.025),vec3(0.3,0.0,0.1),smoothstep(0.35,0.78,w));
       col=mix(col,vec3(0.55,0.04,0.32),smoothstep(0.62,0.92,w)*0.7);
       col+=vec3(0.9,0.3,0.5)*pow(smoothstep(0.5,0.95,n2*w*1.6),3.0)*0.45;
+      col+=pal(uHue+0.33+d.y*0.2)*smoothstep(0.55,0.85,w)*0.16;
       gl_FragColor=vec4(col*(0.3+uOpen*0.4+uBeat*0.06+sin(clamp(uNova,0.0,1.0)*3.14159)*1.3),1.0);}`
 }));
 nebula.renderOrder = -10; scene.add(nebula);
@@ -570,6 +603,114 @@ let fwNext = 0;
 function firework(x, y, z) { const i = fwNext; fwNext = (fwNext + 1) % FW_SLOTS; fwU.uBP.value[i].set(x, y, z); fwU.uBT.value[i] = 0; Audio.sparkle(); }
 function randomFirework() { const a = Math.random()*Math.PI*2, r = rand(3.5, 6.5); firework(Math.cos(a)*r, rand()*2.2 + 0.8, rand(-6, -2)); }
 
+// — rose petals: lit, cupped, translucent geometry, instanced and animated on the GPU
+{
+  const base = new THREE.PlaneGeometry(1, 1, 8, 12), pa = base.attributes.position;
+  for (let i = 0; i < pa.count; i++) {
+    const x = pa.getX(i), y = pa.getY(i), v = y + 0.5, w = Math.pow(Math.sin(Math.PI*Math.min(1, v*1.04)), 0.75)*(0.32 + 0.3*v);
+    const nx = x*2*w; pa.setXYZ(i, nx, y - 0.04*Math.cos(nx*9)*v*v, nx*nx*1.3 + v*v*0.28);
+  }
+  base.computeVertexNormals();
+  const n = COUNT.petals, geo = new THREE.InstancedBufferGeometry();
+  geo.index = base.index; geo.setAttribute("position", base.attributes.position); geo.setAttribute("normal", base.attributes.normal); geo.setAttribute("uv", base.attributes.uv);
+  const off = new Float32Array(n*3), axis = new Float32Array(n*3), spd = new Float32Array(n), ph = new Float32Array(n), sc = new Float32Array(n);
+  for (let i = 0; i < n; i++) { off.set([rand()*7.5, Math.random()*16, rand(-7, 2.2)], i*3); axis.set([rand(), rand(), rand()], i*3); spd[i] = rand(0.5, 1.1); ph[i] = Math.random(); sc[i] = rand(0.12, 0.24); }
+  geo.setAttribute("aOffset", new THREE.InstancedBufferAttribute(off, 3)); geo.setAttribute("aAxis", new THREE.InstancedBufferAttribute(axis, 3));
+  geo.setAttribute("aSpeed", new THREE.InstancedBufferAttribute(spd, 1)); geo.setAttribute("aPhase", new THREE.InstancedBufferAttribute(ph, 1)); geo.setAttribute("aScale", new THREE.InstancedBufferAttribute(sc, 1));
+  geo.instanceCount = n;
+  const mat = new THREE.ShaderMaterial({ uniforms: U, transparent: true, side: THREE.DoubleSide,
+    vertexShader: `
+      uniform float uTime,uOpen,uNova,uPetals;attribute vec3 aOffset,aAxis;attribute float aSpeed,aPhase,aScale;
+      varying vec3 vN,vView;varying vec2 vUv;varying float vA;
+      mat3 axisAngle(vec3 ax,float a){ax=normalize(ax+1e-4);float s=sin(a),c=cos(a),o=1.0-c;
+        return mat3(o*ax.x*ax.x+c,o*ax.x*ax.y+ax.z*s,o*ax.z*ax.x-ax.y*s, o*ax.x*ax.y-ax.z*s,o*ax.y*ax.y+c,o*ax.y*ax.z+ax.x*s, o*ax.z*ax.x+ax.y*s,o*ax.y*ax.z-ax.x*s,o*ax.z*ax.z+c);}
+      void main(){
+        float t=uTime*aSpeed+aPhase*40.0;
+        float fall=mod(aOffset.y-t*0.55*(1.0+uOpen*0.5),16.0)-8.0;
+        vec3 c=vec3(aOffset.x+sin(t*0.7+aPhase*6.0)*0.9,fall,aOffset.z+cos(t*0.5+aPhase*4.0)*0.7);
+        c+=normalize(c+1e-3)*sin(clamp(uNova,0.0,1.0)*3.14159)*7.0;
+        mat3 R=axisAngle(aAxis,t*1.6);
+        vec4 mv=modelViewMatrix*vec4(c+R*(position*aScale),1.0);
+        vN=normalize(normalMatrix*(R*normal));vView=normalize(-mv.xyz);vUv=uv;
+        vA=smoothstep(8.0,6.0,abs(fall))*uPetals;
+        gl_Position=projectionMatrix*mv;}`,
+    fragmentShader: `
+      uniform float uBeat;varying vec3 vN,vView;varying vec2 vUv;varying float vA;
+      void main(){
+        vec3 n=normalize(vN);if(!gl_FrontFacing)n=-n;
+        vec3 L=normalize(vec3(0.3,0.8,0.6));
+        float diff=max(dot(n,L),0.0),back=pow(max(dot(-n,L),0.0),1.5),rim=pow(1.0-abs(dot(n,vView)),2.5);
+        vec3 base=mix(vec3(0.32,0.0,0.06),vec3(0.78,0.06,0.2),smoothstep(0.0,1.0,vUv.y));
+        vec3 col=base*(0.22+diff*0.85)+vec3(0.9,0.18,0.32)*back*0.45+vec3(1.0,0.55,0.66)*rim*0.45;
+        col*=0.92+0.08*sin(vUv.x*48.0);col*=1.0+uBeat*0.15;
+        gl_FragColor=vec4(col,vA);}`
+  });
+  const petals = new THREE.Mesh(geo, mat); petals.frustumCulled = false; scene.add(petals);
+}
+
+// — aurora ribbons in the far sky
+for (let k = 0; k < 3; k++) {
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(90, 14, 160, 1), additive(Object.assign({ uPhase:{ value: k } }, U), `
+    uniform float uTime,uPhase;varying vec2 vUv;
+    void main(){vUv=uv;vec3 p=position;p.y+=sin(p.x*0.06+uTime*0.12+uPhase*3.0)*5.0+sin(p.x*0.17+uTime*0.2)*1.5;p.z+=cos(p.x*0.05+uPhase)*6.0;
+      gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.0);}`, `
+    uniform float uTime,uHue,uOpen,uNova,uPhase;varying vec2 vUv;
+    ${GLSL}
+    void main(){
+      float band=pow(0.5+0.5*sin(vUv.x*60.0+uTime*0.8+sin(vUv.x*9.0+uTime*0.3)*4.0),3.0);
+      float v=smoothstep(0.0,0.35,vUv.y)*smoothstep(1.0,0.3,vUv.y)*pow(vUv.y,0.6);
+      float edge=smoothstep(0.0,0.15,vUv.x)*smoothstep(1.0,0.85,vUv.x);
+      vec3 c=pal(uHue+0.3+uPhase*0.2+vUv.x*0.35+vUv.y*0.15);
+      float k=(0.07+uOpen*0.13+sin(clamp(uNova,0.0,1.0)*3.14159)*0.4)*(0.35+band*0.65)*v*edge;
+      gl_FragColor=vec4(c,k);}`));
+  m.position.set(0, 7 + k*3, -42 - k*8); m.rotation.x = -0.25; m.frustumCulled = false; scene.add(m);
+}
+
+// — foreground bokeh (out-of-focus discs with a bright rim, in camera space)
+{
+  const n = COUNT.bokeh, p = new Float32Array(n*3), t = new Float32Array(n);
+  for (let i = 0; i < n; i++) { p.set([rand()*7, rand()*4.2, rand(-9, -4)], i*3); t[i] = Math.random(); }
+  const b = points(geometry({ position:[p,3], aTone:[t,1] }), additive(U, `
+    uniform float uTime,uPR,uSize,uHue,uOpen;attribute float aTone;varying vec3 vCol;varying float vA;
+    ${GLSL}
+    void main(){vec3 p=position;p.x+=sin(uTime*0.07+aTone*20.0)*0.6;p.y+=cos(uTime*0.05+aTone*13.0)*0.4;
+      vec4 mv=modelViewMatrix*vec4(p,1.0);gl_Position=projectionMatrix*mv;
+      gl_PointSize=(40.0+aTone*150.0)*uPR*(uSize/22.0);
+      vCol=pal(uHue+aTone*0.45);vA=(0.05+uOpen*0.06)*(0.6+0.4*sin(uTime*0.3+aTone*30.0));}`,
+    `varying vec3 vCol;varying float vA;
+    void main(){float d=length(gl_PointCoord-0.5)*2.0;if(d>1.0)discard;float a=smoothstep(1.0,0.9,d)*(0.4+0.6*smoothstep(0.55,0.95,d));gl_FragColor=vec4(vCol,a*vA);}`), camera);
+}
+
+// — prologue: a comet traces the heart's rim and leaves a glowing outline behind
+const HEART_GLSL = `vec2 hxy(float t){float s=sin(t);return vec2(s*s*s*1.6,(13.0*cos(t)-5.0*cos(2.0*t)-2.0*cos(3.0*t)-cos(4.0*t)+2.5)*0.1);}`;
+{
+  const n = COUNT.trail, k = new Float32Array(n), r = new Float32Array(n*3), dummy = new Float32Array(n*3);
+  for (let i = 0; i < n; i++) { k[i] = i/n; r.set([rand(), rand(), rand()], i*3); }
+  points(geometry({ position:[dummy,3], aK:[k,1], aRnd:[r,3] }), additive(U, `
+    uniform float uTrace,uTraceOn,uPR,uSize,uTime;attribute float aK;attribute vec3 aRnd;varying vec3 vCol;varying float vA;
+    ${HEART_GLSL}
+    void main(){float q=uTrace-aK*0.3;
+      vec3 p=vec3(hxy(q*6.2831853),0.0)+aRnd*aK*0.14+aRnd*0.008*sin(uTime*20.0+aK*50.0);
+      vec4 mv=modelViewMatrix*vec4(p,1.0);gl_Position=projectionMatrix*mv;
+      float head=pow(1.0-aK,8.0);
+      gl_PointSize=uSize*uPR*(0.9+head*6.0)/(-mv.z);
+      vCol=mix(vec3(1.0,0.2,0.5),vec3(1.0,0.97,0.99),head)*(0.7+head*1.6);
+      vA=step(0.0,q)*uTraceOn*pow(1.0-aK,1.4);}`), heartGroup);
+}
+{
+  const n = COUNT.outline, u = new Float32Array(n), r = new Float32Array(n*3), dummy = new Float32Array(n*3);
+  for (let i = 0; i < n; i++) { u[i] = Math.random(); r.set([rand(), rand(), rand()], i*3); }
+  points(geometry({ position:[dummy,3], aU:[u,1], aRnd:[r,3] }), additive(U, `
+    uniform float uTrace,uOutline,uPR,uSize,uTime,uBeat;attribute float aU;attribute vec3 aRnd;varying vec3 vCol;varying float vA;
+    ${HEART_GLSL}
+    void main(){vec3 p=vec3(hxy(aU*6.2831853),0.0)*(1.0+uBeat*0.075)+aRnd*vec3(0.015,0.015,0.04);
+      vec4 mv=modelViewMatrix*vec4(p,1.0);gl_Position=projectionMatrix*mv;
+      gl_PointSize=uSize*uPR*(0.8+aRnd.x*0.4)/(-mv.z);
+      float tw=0.6+0.4*sin(uTime*6.0+aU*80.0);
+      vCol=mix(vec3(1.0,0.25,0.5),vec3(1.0,0.85,0.9),tw*0.5)*tw;
+      vA=step(aU,uTrace)*uOutline;}`), heartGroup);
+}
+
 /* ═════════════ 7 · Typography (particle text) ═════════════ */
 const Typo = (() => {
   const W = 720, H = 210, cv = document.createElement("canvas"); cv.width = W; cv.height = H;
@@ -585,7 +726,7 @@ const Typo = (() => {
     g.clearRect(0, 0, W, H);
     const fam = script ? SCRIPT : SANS, weight = script ? 400 : 700;
     let fs = script ? 176 : 140; g.font = `${weight} ${fs}px ${fam}`;
-    const w = g.measureText(str).width; if (w > W - 70) { fs = Math.floor(fs * (W - 70) / w); g.font = `${weight} ${fs}px ${fam}`; }
+    let w = g.measureText(str).width; if (w > W - 70) { fs = Math.floor(fs * (W - 70) / w); g.font = `${weight} ${fs}px ${fam}`; w = g.measureText(str).width; }
     g.direction = isRTL(str) ? "rtl" : "ltr"; g.textAlign = "center"; g.textBaseline = "middle";
     g.fillStyle = g.strokeStyle = "#fff"; g.lineJoin = "round"; g.lineWidth = script ? Math.max(2, fs*0.045) : Math.max(1, fs*0.012);
     g.fillText(str, W/2, H*0.54); g.strokeText(str, W/2, H*0.54);
@@ -595,20 +736,22 @@ const Typo = (() => {
       if (!on(x, y)) continue;
       (on(x-2,y) && on(x+2,y) && on(x,y-2) && on(x,y+2) ? fill : edge).push(x, y);
     }
-    const out = { fill, edge }; cache.set(key, out); return out;
+    const out = { fill, edge, w }; cache.set(key, out); return out;
   }
 
   /** Lays particles out in world space; a share of them ride the outline so letterforms stay crisp. */
   function layout(str, script, worldWidth, count, rnd) {
-    const edgeShare = script ? 0.6 : 0.4;
-    const { fill, edge } = raster(str, script), out = new Float32Array(count*3), k = worldWidth / W;
+    const { fill, edge, w } = raster(str, script), out = new Float32Array(count*3);
+    const dense = /[\u0900-\u097F\u3040-\u30FF\u3400-\u9FFF\uAC00-\uD7AF]/.test(str);
+    const k = worldWidth / Math.max(w*1.08, dense ? 360 : 470);   // short phrases grow to fill the stage
+    const edgeShare = script ? 0.6 : dense ? 0.78 : 0.4;
     const nf = fill.length/2, ne = edge.length/2;
     for (let i = 0; i < count; i++) {
       let src = Math.random() < edgeShare ? edge : fill, n = src === edge ? ne : nf;
       if (!n) { src = src === edge ? fill : edge; n = src.length/2; }
       if (!n) { out.set([rnd[i*3]*2, rnd[i*3+1]*0.6, 0], i*3); continue; }
       const j = (Math.random()*n | 0)*2;
-      out[i*3] = (src[j] - W/2 + Math.random()*2)*k; out[i*3+1] = -(src[j+1] - H*0.54 + Math.random()*2)*k; out[i*3+2] = rand()*(script ? 0.02 : 0.045);
+      const jit = dense ? 1 : 2; out[i*3] = (src[j] - W/2 + Math.random()*jit)*k; out[i*3+1] = -(src[j+1] - H*0.54 + Math.random()*jit)*k; out[i*3+2] = rand()*(script || dense ? 0.015 : 0.045);
     }
     return out;
   }
@@ -624,7 +767,7 @@ const TEXT = (() => {
   const geo = geometry({ position:[to,3], aFrom:[from,3], aRnd:[rnd,3], aSize:[size,1], aTone:[tone,1], aDelay:[delay,1] });
   const TU = { uMorph:{value:1}, uText:{value:0}, uEngrave:{value:1}, uSway:{value:0}, uFine:{value:0}, uMouseT:{value:new THREE.Vector3(99,99,99)}, uTextPos:{value:new THREE.Vector3(0,0.1,2.4)} };
   const mesh = points(geo, additive(Object.assign(TU, U), `
-    uniform float uTime,uBeat,uPR,uSize,uMorph,uText,uMouseOn,uNova,uEngrave,uSway,uFocus,uFine;uniform vec3 uMouseT,uTextPos;
+    uniform float uTime,uBeat,uPR,uSize,uMorph,uText,uMouseOn,uNova,uEngrave,uSway,uFocus,uFine,uHue;uniform vec3 uMouseT,uTextPos;
     attribute vec3 aFrom,aRnd;attribute float aSize,aTone,aDelay;varying vec3 vCol;varying float vA;
     ${GLSL}
     void main(){
@@ -642,8 +785,8 @@ const TEXT = (() => {
       float nv=sin(clamp(uNova*1.4-aTone*0.4,0.0,1.0)*3.14159);p+=normalize(aRnd+1e-3)*nv*7.0;
       p=repel(p,uMouseT,uMouseOn);
       vec4 mv=modelViewMatrix*vec4(p,1.0);gl_Position=projectionMatrix*mv;
-      gl_PointSize=uSize*aSize*uPR*(1.05+uBeat*0.25+arc*0.6)*mix(1.0,0.8,uEngrave)*mix(1.0,0.68,uFine*(1.0-uEngrave))/(-mv.z);
-      vec3 c=mix(vec3(1.0,0.18,0.42),vec3(1.0,0.92,0.96),aTone*0.7+arc*0.5);
+      gl_PointSize=max(1.6,uSize*aSize*uPR*(1.05+uBeat*0.25+arc*0.6)*mix(1.0,0.8,uEngrave)*mix(1.0,0.8,uFine*(1.0-uEngrave))/(-mv.z));
+      vec3 c=mix(pal(uHue+0.04+aTone*0.12),vec3(1.0,0.94,0.96),aTone*0.42+arc*0.45);
       vCol=c*(1.0+uBeat*0.4+arc*0.5+uFocus*0.35*(1.0-uEngrave))*mix(1.0,0.9+uBeat*0.5,uEngrave);vA=uText;
     }`));
   mesh.position.copy(TU.uTextPos.value);
@@ -660,8 +803,9 @@ const TEXT = (() => {
   }
   function setWidth(w) { if (w === width) return; width = w; if (current.str) { morphTo(current.str, current.script); morphT = 1; } }
   function finish() { morphT = 1; TU.uMorph.value = 1; }
-  function update(dt) { morphT = Math.min(1, morphT + dt / CONFIG.timing.morph); TU.uMorph.value = morphT; TU.uFine.value = damp(TU.uFine.value, current.script ? 1 : 0, 3, dt); }
-  return { TU, mesh, morphTo, setWidth, update, finish };
+  const DENSE = /[\u0900-\u097F\u3040-\u30FF\u3400-\u9FFF\uAC00-\uD7AF]/;
+  function update(dt) { morphT = Math.min(1, morphT + dt / CONFIG.timing.morph); TU.uMorph.value = morphT; TU.uFine.value = damp(TU.uFine.value, current.script || DENSE.test(current.str) ? 1 : 0, 3, dt); }
+  return { TU, mesh, morphTo, setWidth, update, finish, get morphing() { return morphT < 1; } };
 })();
 
 /* ═════════════ 8 · HUD ═════════════ */
@@ -838,7 +982,8 @@ const Audio = (() => {
 const state = {
   open: 0, openTarget: 0, wo: 0, beat: 0, bpm: 64, phase: 0, lastPhase: 0,
   nova: -1, glitch: 0, flash: 0, shake: 0, warp: 0.06,
-  cine: false, fitDist: 9, ringR: 3.4, activeLang: -1, glowK: 1, focus: 0
+  cine: false, fitDist: 9, ringR: 3.4, activeLang: -1, glowK: 1, focus: 0,
+  hue: CONFIG.hue.sealed, hueTarget: CONFIG.hue.sealed, introVis: 0, pulse: 0, clean: false
 };
 const glitch = v => { if (!ENV.reduce) state.glitch = Math.max(state.glitch, v); };
 const shock = power => { U.uShock.value = 0; state.shake = Math.max(state.shake, 0.12*power); glitch(0.4*power); };
@@ -852,25 +997,26 @@ const Director = (() => {
 
   const toggleBtn = $("toggle"), chan = $("t-lang");
   function show(item) {
-    timer = 0; Caption.signature(false); state.activeLang = -1; state.focus = item.type === "lang" ? 0 : 1;
+    timer = 0; Caption.signature(false); state.activeLang = -1; state.focus = item.type === "lang" ? 0 : 1; state.pulse = 1;
+    document.body.classList.toggle("cinema", item.type === "finale");
     switch (item.type) {
       case "name":
-        hold = T.hold.name; TEXT.morphTo(CONFIG.to, true);
+        hold = T.hold.name; TEXT.morphTo(CONFIG.to, true); state.hueTarget = CONFIG.hue.name;
         Caption.set(`For you, ${CONFIG.to}`, `<b>♥</b> · from ${esc(CONFIG.from)}`);
         chan.textContent = "DEDICATION"; Audio.chord(); glitch(0.5); for (let i = 0; i < 3; i++) randomFirework();
         break;
       case "lang": {
-        const [code, name, word] = LANGS[item.i]; hold = T.hold.lang; state.activeLang = item.i;
+        const [code, name, word] = LANGS[item.i]; hold = T.hold.lang; state.activeLang = item.i; state.hueTarget = CONFIG.hue.langs[item.i % CONFIG.hue.langs.length];
         TEXT.morphTo(word, false); Caption.set(word, `<b>${pad(item.i+1)}</b> / 20 · ${name}`, code);
         chan.textContent = `${code.toUpperCase()} ${pad(item.i+1)}/20`; Audio.blip(item.i); glitch(0.35);
         break;
       }
       case "custom":
-        hold = T.hold.custom; TEXT.morphTo(custom, false); Caption.set(custom, "<b>♥</b> · a message");
+        hold = T.hold.custom; TEXT.morphTo(custom, false); state.hueTarget = CONFIG.hue.custom; Caption.set(custom, "<b>♥</b> · a message");
         chan.textContent = "MESSAGE"; glitch(0.6); shock(0.6); for (let i = 0; i < 4; i++) randomFirework(); Audio.chord();
         break;
       case "finale":
-        hold = T.hold.finale; TEXT.morphTo(CONFIG.to, true); Caption.set("I love you, in every language", ""); Caption.signature(true);
+        hold = T.hold.finale; TEXT.morphTo(CONFIG.to, true); state.hueTarget = CONFIG.hue.finale; Caption.set("I love you, in every language", ""); Caption.signature(true);
         chan.textContent = "FINALE"; barrage = 10; barrageT = 0; state.flash = 0.5; state.warp = 1; shock(1); Audio.arpeggio();
         log(`<span class="k">&gt;</span> finale --for "${esc(CONFIG.to)}"`); log(`<span class="ok">[ok]</span> signed: ${esc(CONFIG.from)} ♥`);
         break;
@@ -881,7 +1027,7 @@ const Director = (() => {
     show(playlist[pos]);
   }
   function setOpen(v) {
-    if (stage === "boot") return;
+    if (stage !== "live") return;
     state.openTarget = v ? 1 : 0; autoOpened = true; toggleBtn.textContent = v ? "Close heart" : "Open heart"; shock(1);
     if (v) {
       state.warp = 1; state.flash = 0.35; Audio.whoosh(1.4, true);
@@ -890,18 +1036,18 @@ const Director = (() => {
       log(`<span class="ok">[ok]</span> love broadcast on all channels ♥`);
       pos = -1; next();
     } else {
-      Audio.whoosh(1, false); Caption.signature(false); state.focus = 0; TEXT.morphTo(CONFIG.to, true); state.activeLang = -1; chan.textContent = "SEALED";
+      Audio.whoosh(1, false); Caption.signature(false); state.focus = 0; state.hueTarget = CONFIG.hue.sealed; document.body.classList.remove("cinema"); TEXT.morphTo(CONFIG.to, true); state.activeLang = -1; chan.textContent = "SEALED";
       log(`<span class="k">&gt;</span> heart.close()`); log(`<span class="ok">[ok]</span> sealed · ${esc(CONFIG.to)} engraved on the front`);
     }
   }
   function supernova() {
-    if (state.nova >= 0 || stage === "boot") return;
+    if (state.nova >= 0 || stage !== "live") return;
     state.nova = 0; state.flash = 0.9; state.shake = 0.35; state.warp = 1; glitch(1); Audio.boom();
     log(`<span class="k">&gt;</span> heart.supernova()`); log(`<span class="ok">[!!]</span> containment released · 0.4 ms`); log(`<span class="ok">[ok]</span> reassembling from stardust`);
   }
   function seek(predicate) { const k = playlist.findIndex((it, j) => j > pos && predicate(it)); pos = (k >= 0 ? k : playlist.findIndex(predicate)) - 1; next(); }
   function beam(text) {
-    if (stage === "boot") return;
+    if (stage !== "live") return;
     custom = text; log(`<span class="k">&gt;</span> beam(<span class="ok">"${esc(text)}"</span>)`);
     try { if (/^[A-Za-z0-9 -]+$/.test(text)) location.hash = text.replace(/ /g, "-"); } catch (e) {}
     if (!state.openTarget) setOpen(true);
@@ -929,16 +1075,24 @@ const Director = (() => {
       $("boot-bar").style.width = (p*100) + "%"; $("boot-pct").textContent = pad(Math.floor(p*100), 3) + "%";
       $("boot-step").textContent = step; $("boot-log").textContent = "> " + step;
       if (p >= 1 && fontsReady) {
-        stage = "assemble"; stageT = 0; $("boot").classList.add("gone"); glitch(0.6); Quality.armed = true;
+        stage = "prologue"; stageT = 0; $("boot").classList.add("gone"); glitch(0.6); Quality.armed = true; document.body.classList.add("cinema");
         TEXT.morphTo(CONFIG.to, true); TEXT.finish(); chan.textContent = "SEALED";
         log(`<span class="k">&gt;</span> boot amor.core v${CONFIG.version} --webgl --bloom --chroma`);
         log(`<span class="k">&gt;</span> dedicate --to "${esc(CONFIG.to)}" --from "${esc(CONFIG.from)}"`);
         log(`<span class="ok">[ok]</span> ${(COUNT.shell + COUNT.core + COUNT.text).toLocaleString("en")} particles online`);
+        log(`<span class="k">&gt;</span> heart.trace()`);
+      }
+    } else if (stage === "prologue") {
+      U.uScatter.value = 1; U.uTraceOn.value = 1; U.uOutline.value = clamp(stageT*2);
+      U.uTrace.value = ease(clamp(stageT / (T.prologue - 0.8)));
+      if (stageT >= T.prologue) {
+        stage = "assemble"; stageT = 0; state.flash = 0.45; shock(0.9); state.pulse = 1;
         log(`<span class="k">&gt;</span> heart.assemble()`);
       }
     } else if (stage === "assemble") {
+      U.uTraceOn.value = Math.max(0, 1 - stageT*1.5); U.uOutline.value = Math.max(0, 1 - stageT/T.assemble);
       U.uScatter.value = 1 - ease(Math.min(1, stageT / T.assemble));
-      if (stageT >= T.assemble) { stage = "live"; stageT = 0; Audio.chord(); log(`<span class="ok">[ok]</span> locket sealed · engraved “${esc(CONFIG.to)}”`); }
+      if (stageT >= T.assemble) { stage = "live"; stageT = 0; Audio.chord(); document.body.classList.remove("cinema"); log(`<span class="ok">[ok]</span> locket sealed · engraved “${esc(CONFIG.to)}”`); }
     } else {
       U.uScatter.value = 0;
       if (!autoOpened && stageT > T.autoOpen) setOpen(true);
@@ -958,6 +1112,9 @@ function setCine(v) {
   if (controls) controls.enabled = !v; log(`<span class="k">&gt;</span> camera.mode = <span class="ok">"${v ? "cinematic" : "orbit"}"</span>`);
 }
 cineBtn.addEventListener("click", () => setCine(!state.cine));
+const cleanBtn = $("clean");
+function setClean(v) { state.clean = v; document.body.classList.toggle("clean", v); cleanBtn.textContent = v ? "Show HUD" : "Hide HUD"; cleanBtn.setAttribute("aria-pressed", String(v)); }
+cleanBtn.addEventListener("click", () => setClean(!state.clean));
 $("sound").addEventListener("click", e => {
   const btn = e.currentTarget, on = Audio.toggle(); btn.textContent = on ? "Sound on" : "Sound off"; btn.setAttribute("aria-pressed", String(on));
   if (on) log(`<span class="ok">[ok]</span> synth + reverb online`);
@@ -973,6 +1130,7 @@ addEventListener("keydown", e => {
   if (e.code === "Space") { e.preventDefault(); Director.setOpen(!state.openTarget); }
   else if (e.key === "n" || e.key === "N") Director.supernova();
   else if (e.key === "c" || e.key === "C") setCine(!state.cine);
+  else if (e.key === "h" || e.key === "H") setClean(!state.clean);
   else if (state.openTarget && (e.key === "ArrowRight" || e.key === "ArrowLeft")) Director.next(e.key === "ArrowRight" ? 1 : -1);
 });
 
@@ -1045,7 +1203,14 @@ function frame() {
   state.warp = damp(state.warp, 0.06 + nv*0.8, 0.9, dt); U.uWarp.value = ENV.reduce ? 0.03 : state.warp;
   U.uMouseOn.value = damp(U.uMouseOn.value, ENV.reduce ? 0 : mouseTarget, 6, dt);
   FX.uGlitch.value = state.glitch + nv*0.25; FX.uFlash.value = state.flash; FX.uAberr.value = 0.0035 + b*0.004 + nv*0.02 + state.glitch*0.01;
-  if (bloom) bloom.strength = 0.95 + open*0.15 + b*0.3 + nv*1.4;
+  if (bloom) bloom.strength = 0.95 + open*0.15 + b*0.3 + nv*1.4 + state.pulse*0.35;
+
+  // colour: travel the palette the short way round and mirror it into CSS
+  const dh = ((state.hueTarget - state.hue + 1.5) % 1) - 0.5;
+  state.hue = (state.hue + dh*(1 - Math.exp(-1.6*dt)) + 1) % 1; U.uHue.value = state.hue;
+  if (Math.abs(dh) > 0.001 || !frame.tinted) { const c = pal(state.hue).map(v => Math.round(v*255)); document.documentElement.style.setProperty("--tint", `rgb(${c.join(" ")})`); frame.tinted = true; }
+  U.uPetals.value = damp(U.uPetals.value, Director.stage === "live" || Director.stage === "assemble" ? 1 : 0, 0.8, dt);
+  state.pulse = Math.max(0, state.pulse - dt*1.8);
 
   // heart, glow, rays, rings, lightning
   const fo = U.uFocus.value = damp(U.uFocus.value, state.focus*state.openTarget, 2.5, dt);
@@ -1056,7 +1221,7 @@ function frame() {
   rayMeshes.forEach(r => { r.material.opacity = Math.max(open*(1 - 0.55*fo), nv)*(0.16 + 0.2*Math.sin(time*1.3 + r.userData.ph))*(0.7 + b*0.5); r.scale.y = 0.3 + open*0.9 + nv*2; });
   const rs = 0.4 + ease(open)*0.6 + nv*0.6; rings.scale.set(rs, rs, rs);
   RINGS.forEach(r => { r.obj.rotation.y += dt*r.spin*speed; r.obj.material.opacity = open*r.op; });
-  arcAcc += dt; if (arcAcc > (ENV.reduce ? 0.3 : 0.06)) { arcAcc = 0; regenArcs(open*(1 - nv)*(1 - fo)); }
+  arcAcc += dt; if (arcAcc > (ENV.reduce ? 0.3 : 0.06)) { arcAcc = 0; regenArcs(open*(1 - nv)*(1 - fo), TEXT.morphing ? 0.75 : 0.1); }
 
   // helix + fireworks
   U.uHelix.value = damp(U.uHelix.value, state.openTarget*(1 - nv*0.5), 0.7, dt); U.uHelixR.value = state.ringR*0.86;
@@ -1071,11 +1236,11 @@ function frame() {
   TEXT.update(dt);
 
   // HUD
-  Ring.update(wo, 1 - 0.9*fo, nv, time, state.ringR, state.activeLang);
+  Ring.update(wo, 1 - fo, nv, time, state.ringR, state.activeLang);
   pin(els.caption, 0, -0.7, 2.4, wo*(1 - nv), "0");
-  const introVis = (live ? 1 : 0)*(1 - clamp(open*2.2))*(1 - nv);
-  pin(els.introTop, 0, 2.1, 0, introVis, "-100%");
-  pin(els.introBottom, 0, -2.0, 0, introVis*0.9, "0");
+  { const tgt = (Director.stage === "boot" ? 0 : 1)*(1 - clamp(open*2.2))*(1 - nv); state.introVis = damp(state.introVis, tgt, tgt < state.introVis ? 4 : 1.4, dt); }
+  pin(els.introTop, 0, 2.1, 0, state.introVis, "-100%");
+  pin(els.introBottom, 0, -2.0, 0, (live ? state.introVis : 0)*0.9, "0");
   Caption.update(dt); Term.update(dt); Rain.update(dt, open); ECG.draw(); Audio.filter(open, nv);
   els.bpm.nodeValue = pad(Math.round(state.bpm + b*3), 3);
   fpsAcc += dt; fpsN++;

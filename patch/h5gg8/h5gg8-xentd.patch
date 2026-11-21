@@ -1,0 +1,81 @@
+diff --git a/Makefile b/Makefile
+index a2b39c2..4a28afb 100644
+--- a/Makefile
++++ b/Makefile
+@@ -16,6 +16,7 @@ include $(THEOS)/makefiles/common.mk
+ TWEAK_NAME = H5GG
+ 
+ H5GG_FILES = Tweak.mm h5gg.mm MemScan.mm crossproc.mm FloatMenu.mm FloatButton.m FloatWindow.m TopShow.m ModalShow.m makeDYLIB.mm makeWindow.m ldid-master/ldid.cpp ldid-master/lookup2.c
++H5GG_FRAMEWORKS = UIKit WebKit QuartzCore
+ H5GG_CFLAGS = -fobjc-arc -Wno-deprecated-declarations
+ H5GG_CCFLAGS = -fobjc-arc -std=c++17 -fexceptions -Wno-deprecated-declarations
+ H5GG_LOGOS_DEFAULT_GENERATOR = internal
+diff --git a/Tweak.mm b/Tweak.mm
+index 7590b66..10620d6 100755
+--- a/Tweak.mm
++++ b/Tweak.mm
+@@ -336,6 +336,13 @@ FloatMenu* initFloatMenu(UIWindow* win)
+     floatH5.rawHTML = [getLLCode() isEqualToString:@"zh"] ? [NSString stringWithUTF8String:gMenuData] : [NSString stringWithUTF8String:gMenuEnData];
+     NSString* jquery = [NSString stringWithUTF8String:gH5GG_JQUERY_FILEData];
+     floatH5.rawHTML = [floatH5.rawHTML stringByReplacingOccurrencesOfString:@"var h5gg_jquery_stub;" withString:jquery];
++
++    // xentd: like H5GG 7, use H5Menu.html bundled in the .app when present
++    NSString* bundledMenu = [[NSBundle mainBundle] pathForResource:@"H5Menu" ofType:@"html"];
++    if(bundledMenu) {
++        NSString* html = [NSString stringWithContentsOfFile:bundledMenu encoding:NSUTF8StringEncoding error:nil];
++        if(html.length) floatH5.rawHTML = html;
++    }
+     
+     return floatH5;
+ }
+diff --git a/h5gg.h b/h5gg.h
+index 20d13c3..316aee7 100644
+--- a/h5gg.h
++++ b/h5gg.h
+@@ -116,7 +116,7 @@ JSExportAs(makeTweak, -(NSString*)makeTweak:(NSString*)icon with:(NSString*)html
+ @property pid_t targetpid;
+ @property task_port_t targetport;
+ @property (nonatomic, strong) NSMutableDictionary<NSString*, NSDictionary*>* frozenValues;
+-@property (nonatomic, strong) NSTimer* freezerTimer;
++@property (nonatomic, strong) id freezerTimer; // CADisplayLink (xentd: per-frame freezer)
+ -(NSArray<NSString*>*)getInputHistory;
+ -(void)addInputHistory:(NSString*)value;
+ -(void)clearInputHistory;
+diff --git a/h5gg.mm b/h5gg.mm
+index df61c27..0db4d95 100644
+--- a/h5gg.mm
++++ b/h5gg.mm
+@@ -698,9 +698,9 @@ NSString* makeDYLIB(NSString* iconfile, NSString* htmlfile);
+     if(!address || !value || !type) return NO;
+     _frozenValues[address] = @{@"address": address, @"value": value, @"type": type};
+     if(!_freezerTimer) {
+-        _freezerTimer = [NSTimer scheduledTimerWithTimeInterval:0.1 repeats:YES block:^(NSTimer *t) {
+-            [self _freezerTick];
+-        }];
++        CADisplayLink* link = [CADisplayLink displayLinkWithTarget:self selector:@selector(_freezerLink:)];
++        [link addToRunLoop:[NSRunLoop mainRunLoop] forMode:NSRunLoopCommonModes];
++        _freezerTimer = link;
+     }
+     return YES;
+ }
+@@ -725,6 +725,10 @@ NSString* makeDYLIB(NSString* iconfile, NSString* htmlfile);
+     _freezerTimer = nil;
+ }
+ 
++-(void)_freezerLink:(CADisplayLink*)link {
++    [self _freezerTick];
++}
++
+ -(void)_freezerTick {
+     for(NSDictionary* entry in [_frozenValues allValues]) {
+         UInt8 valuebuf[8];
+diff --git a/packages/com.test.h5gg_8.0.0_iphoneos-arm.deb b/packages/com.test.h5gg_8.0.0_iphoneos-arm.deb
+index 3f2e091..ff2a9ac 100644
+Binary files a/packages/com.test.h5gg_8.0.0_iphoneos-arm.deb and b/packages/com.test.h5gg_8.0.0_iphoneos-arm.deb differ
+diff --git a/version.h b/version.h
+index ad517b5..5227b5b 100644
+--- a/version.h
++++ b/version.h
+@@ -1 +1 @@
+-#define H5GG_VERSION 8.0
++#define H5GG_VERSION 8.0 // xentd build: bundled H5Menu.html + per-frame freezer

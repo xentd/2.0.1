@@ -152,7 +152,7 @@ Once you play AI or online, click the button in play or on the Home Screen
     <input type="range" name="range" value="0.70" min="0.01" max="1.0" step="0.003" id="zzomsec" class="inputRange" style="display: none; margin-top: 17px; width: 215px;"/>
 
     <div id="content" class="content scrollable">
-        <div class="intro">ModMenu by Tabemaru (lite: small touch area)</div>
+        <div class="intro">ModMenu by Tabemaru (lite v2)</div>
         <hr>
                 <label class="checkboxItem">
     <input type="checkbox" name="checkbox" id="icon" value="選択肢3" class="checkbox" onchange="hide()" />
@@ -223,7 +223,6 @@ function updateTime() {
 // Shrink H5GG's window and its touch area to what is on screen, so other touches go to the game.
 function setMenuSize(h) {
     setWindowRect(500, 60, 300, h);
-    try { setWindowTouch(0, 0, 300, h); } catch (e) {}
 }
 function openwindow() {
     const content = document.getElementById('content');

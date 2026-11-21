@@ -140,6 +140,18 @@
 </head>
 
 <body>
+<div id="errLine" style="display:none;position:fixed;left:0;right:0;bottom:0;background:#a00;color:#fff;font:11px Menlo,monospace;padding:3px;z-index:999;word-break:break-all"></div>
+<script>
+window.addEventListener('error', function (e) {
+  var d = document.getElementById('errLine'); if (!d) return;
+  d.style.display = 'block'; d.textContent = 'JS error: ' + e.message + ' (line ' + e.lineno + ')';
+});
+window.addEventListener('unhandledrejection', function (e) {
+  var d = document.getElementById('errLine'); if (!d) return;
+  d.style.display = 'block'; d.textContent = 'Async error: ' + (e.reason && e.reason.message || e.reason);
+});
+</script>
+
 <div class="farstcontent">
     <button class="start-button" onclick="startExecution()">click!!</button>
 <p>
@@ -251,7 +263,7 @@ function openwindow() {
     content.style.display = isVisible ? 'none' : 'block'; // コンテンツをトグル
 
     // ウィンドウの開閉に応じてウィンドウサイズを変更
-    setWindowRect(500, 60, 300, isVisible ? 80 : 185);
+    setWindowRect(-1, -1, 300, isVisible ? 80 : 185);
 }
 
 // 初回ロード時にリアルタイムの時刻表示を開始
@@ -318,7 +330,7 @@ async function startExecution() {
     if (baseAddress) {
         document.querySelector('.start-button').style.display = 'none';
                 document.querySelector('.farstcontent').style.display = 'none';
-        setWindowRect(500, 60, 300, 215);
+        setWindowRect(-1, -1, 300, 215);
         setWindowDrag(0, 0, 300, 25);
     }
 }
@@ -515,7 +527,7 @@ function hide() {
 }
 
 // 初期設定
-setWindowRect(500, 60, 300, 215);
+setWindowRect(-1, -1, 300, 215);
 setWindowDrag(0, 0, 300, 25);
 
 // イベントリスナーの設定

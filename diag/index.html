@@ -154,6 +154,13 @@ Once you play AI or online, click the button in play or on the Home Screen
 
     <div id="content" class="content scrollable">
         <div class="intro">ModMenu by Tabemaru</div>
+        <div class="intro">Diagnostics</div>
+        <div style="display:flex; gap:4px; flex-wrap:wrap; margin:4px 0 8px;">
+          <button class="dgBtn" onclick="diagReport()">Report</button>
+          <button class="dgBtn" onclick="diagChanges()">Find (while turning)</button>
+          <button class="dgBtn" onclick="diagDump()">Dump</button>
+          <button class="dgBtn" onclick="diagReset()">Reset</button>
+        </div>
         <hr>
                 <label class="checkboxItem">
     <input type="checkbox" name="checkbox" id="icon" value="選択肢3" class="checkbox" onchange="hide()" />
@@ -197,14 +204,6 @@ Once you play AI or online, click the button in play or on the Home Screen
             Off (don't write it)
         </label>
         <div style="font-size: 12px; opacity: .8; margin-top: 4px;">Timer rate: <span id="ctrlRate">…</span>/s</div>
-        <hr>
-        <div class="intro">Diagnostics</div>
-        <div style="display:flex; gap:4px; flex-wrap:wrap; margin:4px 0 8px;">
-          <button class="dgBtn" onclick="diagReport()">Report</button>
-          <button class="dgBtn" onclick="diagChanges()">Find (while turning)</button>
-          <button class="dgBtn" onclick="diagDump()">Dump</button>
-          <button class="dgBtn" onclick="diagReset()">Reset</button>
-        </div>
     </div>
     <div id="dgBox" style="display:none; position:fixed; left:0; top:0; width:520px; height:360px; background:#000000ee; z-index:99; overflow:auto;">
       <button class="dgBtn" onclick="diagClose()" style="position:sticky; top:0; float:right;">Close</button>

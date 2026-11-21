@@ -157,6 +157,7 @@ Once you play AI or online, click the button in play or on the Home Screen
         <div class="intro">Diagnostics</div>
         <div style="display:flex; gap:4px; flex-wrap:wrap; margin:4px 0 8px;">
           <button class="dgBtn" onclick="diagReport()">Report</button>
+          <button class="dgBtn" onclick="diagTurnTest()">Turn test</button>
           <button class="dgBtn" onclick="diagChanges()">Find (while turning)</button>
           <button class="dgBtn" onclick="diagDump()">Dump</button>
           <button class="dgBtn" onclick="diagReset()">Reset</button>
@@ -306,7 +307,7 @@ function diagChanges() {
 function diagReport() {
   var L = [];
   var up = Math.round((Date.now() - DG.t0) / 1000);
-  L.push('DIAG v1  ' + new Date().toLocaleString() + '  up ' + up + 's');
+  L.push('DIAG v2  ' + new Date().toLocaleString() + '  up ' + up + 's');
   L.push('iOS: ' + ((navigator.userAgent.match(/OS ([\d_]+)/) || [])[1] || '?').replace(/_/g, '.') + '  base ' + (DG.base || 'not started') + '  getValue ' + (DG.getOk === null ? '-' : DG.getOk ? 'ok' : 'FAILED'));
   L.push('TIMER 1ms: ' + DG.tickRate + '/s  gap ms p50 ' + dgFmt(dgPct(DG.tick, 50)) + ' p95 ' + dgFmt(dgPct(DG.tick, 95)) + ' max ' + dgFmt(dgPct(DG.tick, 100)));
   L.push('SCREEN: ' + DG.rafRate + ' fps  frame ms p50 ' + dgFmt(dgPct(DG.raf, 50)) + ' p95 ' + dgFmt(dgPct(DG.raf, 95)) + ' max ' + dgFmt(dgPct(DG.raf, 100)));
@@ -339,6 +340,83 @@ function dgShow(text) {
 function diagClose() {
   document.getElementById('dgBox').style.display = 'none';
   dgOpen = false; setWindowRect(500, 60, 300, 215);
+}
+// ---- Turn test: find the snake's heading in memory and measure its real turn speed ----
+// Phase 1 (1 s): snapshots of the scanned range -> candidates that keep changing and look like
+// angles (always between -7 and 7). Phase 2 (3 s): sample only those candidates on every timer
+// tick with timestamps, unwrap them as angles, and measure rotation speed in degrees/second.
+// The game's own turn cap for a small snake is mamu * 1000/8 rad/s (~236 deg/s with mamu 0.033).
+function diagTurnTest() {
+  if (!DG.base) { dgShow('Press click!! (Start) first.'); return; }
+  dgShow('TURN TEST: keep turning in circles, finger held down…\n(1 of 2: finding the heading)');
+  var snaps = [], n = 0;
+  var iv = setInterval(function () {
+    var s = {};
+    for (var off = DG_FROM; off <= DG_TO; off += 8) s[off] = dgRead(off);
+    snaps.push(s);
+    if (++n < 6) return;
+    clearInterval(iv);
+    var cands = [];
+    for (var off2 = DG_FROM; off2 <= DG_TO; off2 += 8) {
+      var ok = true, ch = 0;
+      for (var j = 0; j < snaps.length; j++) {
+        var v = snaps[j][off2];
+        if (!(v === v) || Math.abs(v) > 7) { ok = false; break; }
+        if (j && v !== snaps[j - 1][off2]) ch++;
+      }
+      if (ok && ch >= 4) cands.push(off2);
+    }
+    if (!cands.length) { dgShow('TURN TEST: no heading-like values found. Make sure you are turning in circles while it runs.'); return; }
+    cands = cands.slice(0, 40);
+    dgShow('TURN TEST: keep turning…\n(2 of 2: measuring ' + cands.length + ' values for 3 s)');
+    var series = {}; cands.forEach(function (c) { series[c] = []; });
+    var t0 = dgNow();
+    var iv2 = setInterval(function () {
+      var t = dgNow();
+      cands.forEach(function (c) { series[c].push([t, dgRead(c)]); });
+      if (t - t0 > 3000) { clearInterval(iv2); dgTurnReport(cands, series); }
+    }, 1);
+  }, 200);
+}
+function dgTurnReport(cands, series) {
+  var mamu = dgRead(-0x1a8), cap = mamu * 1000 / 8 * 180 / Math.PI;
+  var rows = [];
+  cands.forEach(function (c) {
+    var s = series[c]; if (s.length < 20) return;
+    var lo = Infinity, hi = -Infinity;
+    s.forEach(function (p) { lo = Math.min(lo, p[1]); hi = Math.max(hi, p[1]); });
+    var span = hi - lo;
+    // unwrap as an angle (jumps bigger than pi are wraparounds)
+    var unwrapped = [s[0][1]], k = 0;
+    for (var i = 1; i < s.length; i++) {
+      var d = s[i][1] - s[i - 1][1];
+      if (d > Math.PI) k -= 2 * Math.PI; else if (d < -Math.PI) k += 2 * Math.PI;
+      unwrapped.push(s[i][1] + k);
+    }
+    var total = unwrapped[unwrapped.length - 1] - unwrapped[0];
+    var secs = (s[s.length - 1][0] - s[0][0]) / 1000;
+    // rate over ~100 ms windows (smooths timer jitter)
+    var rates = [], j0 = 0;
+    for (var j = 1; j < s.length; j++) {
+      while (s[j][0] - s[j0][0] > 100) j0++;
+      if (j0 > 0 && s[j][0] - s[j0 - 1][0] >= 90) {
+        var dt = (s[j][0] - s[j0 - 1][0]) / 1000;
+        rates.push(Math.abs(unwrapped[j] - unwrapped[j0 - 1]) / dt * 180 / Math.PI);
+      }
+    }
+    var changes = 0; for (var q = 1; q < s.length; q++) if (s[q][1] !== s[q - 1][1]) changes++;
+    rows.push({ off: c, total: total * 180 / Math.PI, avg: Math.abs(total) / secs * 180 / Math.PI,
+                p90: dgPct(rates, 90), max: dgPct(rates, 100), span: span, upd: changes / secs, n: s.length });
+  });
+  // the heading turns steadily while circling: most total rotation, values spanning about 2*pi
+  rows.sort(function (a, b) { return Math.abs(b.total) - Math.abs(a.total); });
+  var L = ['TURN TEST  (game turn cap for a small snake: ' + dgFmt(cap) + ' deg/s, mamu ' + dgFmt(mamu) + ')',
+           'offset: turned deg | avg deg/s | p90 deg/s | max deg/s | value range | updates/s'];
+  rows.slice(0, 10).forEach(function (r) {
+    L.push(dgHex(r.off) + ': ' + dgFmt(r.total) + ' | ' + dgFmt(r.avg) + ' | ' + dgFmt(r.p90) + ' | ' + dgFmt(r.max) + ' | ' + dgFmt(r.span) + ' | ' + dgFmt(r.upd));
+  });
+  L.push('timer ' + DG.tickRate + '/s, samples ' + (rows[0] ? rows[0].n : 0));
+  dgShow(L.join('\n'));
 }
 // =================== END DIAGNOSTICS ===================
 

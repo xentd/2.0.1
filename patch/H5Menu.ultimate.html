@@ -556,7 +556,7 @@ function utGet(off) { try { return Number(h5gg.getValue('0x' + (parseInt(UT.base
 function utPct(a, p) { if (!a.length) return NaN; var s = a.slice().sort(function (x, y) { return x - y; }); return s[Math.min(s.length - 1, Math.floor(p / 100 * s.length))]; }
 function utF(v, d) { return (v === v && v !== undefined) ? (+v.toFixed(d === undefined ? 1 : d)).toString() : '-'; }
 function utHex(o) { if (o !== o) return 'xy'; return (o < 0 ? '-' : '+') + Math.abs(o).toString(16); }
-function utAngDiff(a, b) { var d = a - b; while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI; return d; }
+function utAngDiff(a, b) { var d = a - b; if (!isFinite(d)) return NaN; var T = 2 * Math.PI; d = ((d + Math.PI) % T + T) % T - Math.PI; return d; }
 // background probes: native 1 ms timer (bypasses the rhythm pump), the cheat pump, the screen
 (function () {
   var NS = window.__nativeSet || window.setInterval, ln = utNow(), lp = utNow(), lr = utNow();
@@ -695,7 +695,7 @@ function utReport(cands, series, cheat, zs) {
   pair = fits[0] || null;
   var L = [];
   var ua = navigator.userAgent, iosv = ((ua.match(/OS ([\d_]+)/) || [])[1] || '?').replace(/_/g, '.');
-  L.push('ULTIMATE TEST v8   iOS(UA) ' + iosv + '   rhythm ' + (window.__rhythmOn ? 'ON' : 'OFF') + '   ' + new Date().toLocaleString());
+  L.push('ULTIMATE TEST v7   iOS(UA) ' + iosv + '   rhythm ' + (window.__rhythmOn ? 'ON' : 'OFF') + '   ' + new Date().toLocaleString());
   L.push('A TIMERS  iOS 1ms timer ' + UT.natRate + '/s (gap p50 ' + utF(utPct(UT.nat, 50)) + ' p95 ' + utF(utPct(UT.nat, 95)) + ' ms)   cheats ' + (window.__rhythmOn ? UT.pumpRate + '/s (p50 ' + utF(utPct(UT.pump, 50)) + ' p95 ' + utF(utPct(UT.pump, 95)) + ')' : UT.natRate + '/s (on the iOS timer)') + '   screen ' + UT.rafRate + 'fps (p95 ' + utF(utPct(UT.raf, 95)) + ' ms)');
   if (!head) {
     L.push('B-D  heading not found - circle the whole time during step 2/3 and run again');
@@ -796,8 +796,8 @@ function fhFit(head, ang, lags, step) {
     for (var i = 0; i < n; i += step) {
       var tt = head[i][0] - lag; if (tt < head[0][0]) continue;
       while (j + 1 < n && head[j + 1][0] <= tt) j++;
-      var a = ang[j]; if (!(a === a)) continue;
-      ds.push(utAngDiff(head[i][1], sgn * a));
+      var a = ang[j]; if (!isFinite(a)) continue;
+      var dd = utAngDiff(head[i][1], sgn * a); if (dd === dd) ds.push(dd);
     }
     if (ds.length < 30) continue;
     for (var oq = 0; oq < 4; oq++) {
@@ -816,7 +816,8 @@ function fhReport(keys, cand, ser, head) {
   var tasks = [];
   cand.forEach(function (k) {
     var a = ser[k], lo = Infinity, hi = -Infinity; for (var i = 0; i < a.length; i++) { lo = Math.min(lo, a[i]); hi = Math.max(hi, a[i]); }
-    if (hi - lo >= 1) tasks.push({ what: name(k) + ' angle', ang: a, upd: fhUpdates(a, head) });
+    var finite = true; for (var i0 = 0; i0 < a.length; i0++) if (!isFinite(a[i0]) || Math.abs(a[i0]) > 1e4) { finite = false; break; }
+    if (finite && hi - lo >= 1) tasks.push({ what: name(k) + ' angle', ang: a, upd: fhUpdates(a, head) });
     var stepB = keys[k][0] === 'F64' ? 8 : 4, k2 = -1;
     for (var z = 0; z < cand.length; z++) if (keys[cand[z]][0] === keys[k][0] && keys[cand[z]][1] === keys[k][1] + stepB) { k2 = cand[z]; break; }
     if (k2 < 0) return;
@@ -836,7 +837,8 @@ function fhReport(keys, cand, ser, head) {
   var ti = 0;
   function coarse() {
     var endT = Math.min(tasks.length, ti + 4);
-    for (; ti < endT; ti++) tasks[ti].c = fhFit(head, tasks[ti].ang, coarseLags, 6);
+    try { for (; ti < endT; ti++) tasks[ti].c = fhFit(head, tasks[ti].ang, coarseLags, 6); }
+    catch (e) { UT.running = false; utPrompt(''); utShow('FINGER HUNT error (analysis ' + ti + '/' + tasks.length + '): ' + e.message); return; }
     utPrompt('HUNT analysing ' + Math.round(100 * ti / Math.max(1, tasks.length) * 0.7) + '%');
     if (ti < tasks.length) { NT(coarse, 0); return; }
     // 3. fine pass for the 8 best (all delays 0..600 in 12 ms steps, every 2nd sample)
@@ -844,7 +846,7 @@ function fhReport(keys, cand, ser, head) {
     var fineLags = []; for (var l2 = 0; l2 <= 600; l2 += 12) fineLags.push(l2);
     var fi = 0;
     function fine() {
-      if (fi < top.length) { top[fi].f = fhFit(head, top[fi].ang, fineLags, 2); fi++; utPrompt('HUNT analysing ' + (70 + Math.round(30 * fi / top.length)) + '%'); NT(fine, 0); return; }
+      if (fi < top.length) { try { top[fi].f = fhFit(head, top[fi].ang, fineLags, 2); } catch (e) { utPrompt(''); utShow('FINGER HUNT error (fine ' + fi + '): ' + e.message); return; } fi++; utPrompt('HUNT analysing ' + (70 + Math.round(30 * fi / top.length)) + '%'); NT(fine, 0); return; }
       utPrompt('');
       var res = top.filter(function (t) { return t.f && t.f.lag >= 12; }).sort(function (a, b) { return a.f.md - b.f.md; });
       var hs = head.length / ((head[head.length - 1][0] - head[0][0]) / 1000);

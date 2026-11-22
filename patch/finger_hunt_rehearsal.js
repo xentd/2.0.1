@@ -4,7 +4,7 @@ const fake = `
   put(0, -1); put(8, 430); put(-0x1a8, 0.033); put(-0x1c8, 5.39); put(-0x950, 8.5); put(-0x260, 0.73); put(-0x150, 100); put(-0x140, 100);
   const cap = 0.033 * 1000 / 8 / 1000;                 // rad per ms
   let finger = 0, wanted = 0, head = 0, last = performance.now(); const hist = [];
-  setInterval(() => { finger = (finger + 88 * Math.PI / 180 * 16.7 / 1000) % (2 * Math.PI); const r = 90 + 30 * Math.sin(performance.now() / 700); put(0x2a00, 430 + r * Math.cos(finger)); put(0x2a04, 200 - r * Math.sin(finger)); put(-0x940, Math.random() * 6); put(0x1000, Math.random() * 50); put(0x1008, performance.now() % 1000); put(-0x3000, Math.sin(performance.now()/300) * 3); hist.push([performance.now(), finger]); }, 16.7);
+  setInterval(() => { finger = (finger + 88 * Math.PI / 180 * 16.7 / 1000) % (2 * Math.PI); const r = 90 + 30 * Math.sin(performance.now() / 700); put(0x2a00, 430 + r * Math.cos(finger)); put(0x2a04, 200 - r * Math.sin(finger)); put(-0x940, Math.random() * 6); const el = performance.now() - (window.__t0 || (window.__t0 = performance.now())); put(0x500, el < 6000 ? Math.random() * 3 : 1e300); put(0x508, el < 6000 ? Math.random() * 3 : Infinity); put(0x510, el < 6000 ? Math.random() * 3 : 1e9 * Math.random()); put(0x518, el < 6000 ? 2 + Math.random() : 1e15); put(0x1000, Math.random() * 50); put(0x1008, performance.now() % 1000); put(-0x3000, Math.sin(performance.now()/300) * 3); hist.push([performance.now(), finger]); }, 16.7);
   (function frame() {                                   // game loop, 60 fps, 10% long frames
     const now = performance.now(), dt = now - last; last = now;
     while (hist.length > 1 && now - hist[1][0] >= 60) hist.shift();   // 60 ms input latency

@@ -155,6 +155,7 @@ Once you play AI or online, click the button in play or on the Home Screen
         <div class="intro">ModMenu by Tabemaru</div>
         <div style="margin:4px 0 6px;">
           <button onclick="ultimateTest()" style="font-size:13px;padding:5px 8px;background:#961D32;color:#fff;border:1px solid #fff4;">ULTIMATE TEST</button>
+          <button onclick="fingerHunt()" style="font-size:13px;padding:5px 8px;background:#1F4E96;color:#fff;border:1px solid #fff4;">FINGER HUNT</button>
           <label style="font-size:12px;margin-left:6px;"><input type="checkbox" id="rhythmBox" checked onchange="window.__rhythmOn=this.checked"> iOS 18 rhythm</label>
           <div id="utLive" style="font-size:11px;opacity:.85;margin-top:3px;">live: …</div>
         </div>
@@ -694,7 +695,7 @@ function utReport(cands, series, cheat, zs) {
   pair = fits[0] || null;
   var L = [];
   var ua = navigator.userAgent, iosv = ((ua.match(/OS ([\d_]+)/) || [])[1] || '?').replace(/_/g, '.');
-  L.push('ULTIMATE TEST v7   iOS(UA) ' + iosv + '   rhythm ' + (window.__rhythmOn ? 'ON' : 'OFF') + '   ' + new Date().toLocaleString());
+  L.push('ULTIMATE TEST v8   iOS(UA) ' + iosv + '   rhythm ' + (window.__rhythmOn ? 'ON' : 'OFF') + '   ' + new Date().toLocaleString());
   L.push('A TIMERS  iOS 1ms timer ' + UT.natRate + '/s (gap p50 ' + utF(utPct(UT.nat, 50)) + ' p95 ' + utF(utPct(UT.nat, 95)) + ' ms)   cheats ' + (window.__rhythmOn ? UT.pumpRate + '/s (p50 ' + utF(utPct(UT.pump, 50)) + ' p95 ' + utF(utPct(UT.pump, 95)) + ')' : UT.natRate + '/s (on the iOS timer)') + '   screen ' + UT.rafRate + 'fps (p95 ' + utF(utPct(UT.raf, 95)) + ' ms)');
   if (!head) {
     L.push('B-D  heading not found - circle the whole time during step 2/3 and run again');
@@ -738,6 +739,115 @@ function utReport(cands, series, cheat, zs) {
   utShow(L.join('\n'));
 }
 // =================== END ULTIMATE TEST ===================
+// ===================== FINGER HUNT (xentd) =====================
+// Finds where the game keeps your finger direction: scans +-0x4000 bytes around the base as
+// 8-byte (F64) and 4-byte (F32) numbers, keeps values that move while you circle, and tests each
+// one (as an angle) and each neighbouring pair (as X/Y around its own centre) against the snake's
+// heading: mirrored or not, offset by 0/90/180/270 deg, delayed 0..600 ms. Lists the top 5.
+var FH_SPAN = 0x4000;
+function fhGet(off, type) { try { return Number(h5gg.getValue('0x' + (parseInt(baseAddress, 16) + off).toString(16), type)); } catch (e) { return NaN; } }
+function fingerHunt() {
+  if (UT.running) return;
+  if (!baseAddress) { utPrompt('Press click!! first, in a game'); setTimeout(function () { utPrompt(''); }, 3000); return; }
+  UT.running = true; UT.base = baseAddress;   // heading reads use UT.base
+  utPrompt('HUNT 1/2: circle SLOWLY (1 circle per 3 s), keep going…');
+  var snaps = [], keys = [];
+  for (var o = -FH_SPAN; o < FH_SPAN; o += 8) keys.push(['F64', o]);
+  for (var o2 = -FH_SPAN; o2 < FH_SPAN; o2 += 4) keys.push(['F32', o2]);
+  var n = 0, t0 = utNow();
+  var NS = window.__nativeSet || window.setInterval;
+  var iv = NS(function () {
+    if (utNow() - t0 < 1500) return;                   // give the player time to start circling
+    var s = new Array(keys.length);
+    for (var i = 0; i < keys.length; i++) s[i] = fhGet(keys[i][1], keys[i][0]);
+    snaps.push(s);
+    if (++n < 8) return;
+    clearInterval(iv);
+    // keep values that move a lot and stay finite and reasonably sized
+    var cand = [];
+    for (var k = 0; k < keys.length; k++) {
+      var ok = true, ch = 0, lo = Infinity, hi = -Infinity;
+      for (var j = 0; j < snaps.length; j++) { var v = snaps[j][k]; if (!(v === v) || Math.abs(v) > 1e5) { ok = false; break; } if (j && v !== snaps[j - 1][k]) ch++; lo = Math.min(lo, v); hi = Math.max(hi, v); }
+      if (ok && ch >= 5 && hi > lo) cand.push(k);
+    }
+    // limit to the 120 busiest values
+    cand = cand.slice(0, 120);
+    utPrompt('HUNT 2/2: keep circling slowly… (' + cand.length + ' values)');
+    var ser = {}; cand.forEach(function (k) { ser[k] = []; }); var head = [], t1 = utNow();
+    var stop = utSampler(6, function (t) {
+      head.push([t, utGet(-0x10)]);
+      for (var c = 0; c < cand.length; c++) { var kk = cand[c]; ser[kk].push(fhGet(keys[kk][1], keys[kk][0])); }
+      if (t - t1 > 7000) { stop(); UT.running = false; utPrompt(''); try { fhReport(keys, cand, ser, head); } catch (e) { utShow('FINGER HUNT error: ' + e.message); } }
+    });
+  }, 150);
+}
+function fhFit(head, ang) {   // ang: array aligned with head samples; returns best {md, lag, sgn, off}
+  var best = null, ts = head.map(function (p) { return p[0]; });
+  for (var sgn = 1; sgn >= -1; sgn -= 2) for (var lag = 0; lag <= 600; lag += 12) {
+    var j = 0, ds = [];
+    for (var i = 0; i < head.length; i += 3) {
+      var tt = ts[i] - lag; if (tt < ts[0]) continue;
+      while (j + 1 < ts.length && ts[j + 1] <= tt) j++;
+      if (!(ang[j] === ang[j])) continue;
+      ds.push(utAngDiff(head[i][1], sgn * ang[j]));
+    }
+    if (ds.length < 40) continue;
+    for (var oq = 0; oq < 4; oq++) {
+      var off = oq * Math.PI / 2, sum = 0;
+      for (var q = 0; q < ds.length; q++) sum += Math.abs(utAngDiff(ds[q], off));
+      var md = sum / ds.length * 180 / Math.PI;
+      if (!best || md < best.md) best = { md: md, lag: lag, sgn: sgn, off: oq * 90 };
+    }
+  }
+  return best;
+}
+function fhUpdates(arr, head) { var c = 0; for (var i = 1; i < arr.length; i++) if (arr[i] !== arr[i - 1]) c++; return c / ((head[head.length - 1][0] - head[0][0]) / 1000); }
+function fhReport(keys, cand, ser, head) {
+  var res = [];
+  var name = function (k) { return keys[k][0] + ' ' + utHex(keys[k][1]); };
+  // the snake's own heading (-0x10) and the server's copy (-0x908) always "match": leave them out
+  var isHead = function (k) { var o = keys[k][1]; return (o >= -0x10 && o < -0x8) || (o >= -0x908 && o < -0x900); };
+  cand = cand.filter(function (k) { return !isHead(k); });
+  // single values as angles
+  cand.forEach(function (k) {
+    var a = ser[k]; var lo = Math.min.apply(null, a), hi = Math.max.apply(null, a);
+    if (hi - lo < 1) return;
+    var f = fhFit(head, a); if (f) res.push({ what: name(k) + ' angle', f: f, upd: fhUpdates(a, head) });
+  });
+  // neighbouring pairs as X/Y around their own centre (handles screen coordinates)
+  cand.forEach(function (k) {
+    var step = keys[k][0] === 'F64' ? 8 : 4;
+    var k2 = -1; for (var z = 0; z < cand.length; z++) if (keys[cand[z]][0] === keys[k][0] && keys[cand[z]][1] === keys[k][1] + step) { k2 = cand[z]; break; }
+    if (k2 < 0) return;
+    var x = ser[k], y = ser[k2], upd = Math.max(fhUpdates(x, head), fhUpdates(y, head));
+    var mx = 0, my = 0, x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+    for (var i = 0; i < x.length; i++) { mx += x[i]; my += y[i]; x0 = Math.min(x0, x[i]); x1 = Math.max(x1, x[i]); y0 = Math.min(y0, y[i]); y1 = Math.max(y1, y[i]); }
+    mx /= x.length; my /= y.length;
+    // centre options: (0,0) = relative to the snake; middle of the thumb's range; average position
+    var centres = [[0, 0, 'rel'], [(x0 + x1) / 2, (y0 + y1) / 2, 'mid'], [mx, my, 'avg']];
+    var bestXY = null, bestYX = null;
+    centres.forEach(function (c) {
+      var a1 = [], a2 = []; for (var i2 = 0; i2 < x.length; i2++) { a1.push(Math.atan2(y[i2] - c[1], x[i2] - c[0])); a2.push(Math.atan2(x[i2] - c[0], y[i2] - c[1])); }
+      var f1 = fhFit(head, a1), f2 = fhFit(head, a2);
+      if (f1 && (!bestXY || f1.md < bestXY.f.md)) bestXY = { f: f1, c: c[2] };
+      if (f2 && (!bestYX || f2.md < bestYX.f.md)) bestYX = { f: f2, c: c[2] };
+    });
+    if (bestXY) res.push({ what: name(k) + '/' + utHex(keys[k2][1]) + ' X/Y(' + bestXY.c + ')', f: bestXY.f, upd: upd });
+    if (bestYX) res.push({ what: name(k2) + '/' + utHex(keys[k][1]) + ' Y/X(' + bestYX.c + ')', f: bestYX.f, upd: upd });
+  });
+  res = res.filter(function (r) { return r.f.lag >= 12; });   // the finger leads; the snake follows
+  res.sort(function (a, b) { return a.f.md - b.f.md; });
+  var hs = head.length / ((head[head.length - 1][0] - head[0][0]) / 1000);
+  var L = ['FINGER HUNT  ' + cand.length + ' moving values, ' + res.length + ' tested, sampled ' + utF(hs) + '/s',
+           'rank: where | fit (deg off, lower=better) | snake follows after | updates/s'];
+  res.slice(0, 5).forEach(function (r, i) {
+    L.push((i + 1) + '. ' + r.what + (r.f.sgn < 0 ? ' mirrored' : '') + (r.f.off ? ' +' + r.f.off + 'deg' : '') + ' | ' + utF(r.f.md) + ' | ' + r.f.lag + ' ms | ' + utF(r.upd));
+  });
+  if (res.length && res[0].f.md < 20) L.push('=> FOUND: snake follows your finger after ~' + res[0].f.lag + ' ms; touches update ' + utF(res[0].upd) + '/s');
+  else L.push('=> no clear match (best fit should be under 20 deg). Circle slower and smoother and run again.');
+  utShow(L.join('\n'));
+}
+// =================== END FINGER HUNT ===================
 </script>
 </body>
 

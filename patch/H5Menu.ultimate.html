@@ -755,7 +755,7 @@ function fingerHunt() {
   for (var o2 = -FH_SPAN32; o2 < FH_SPAN32; o2 += 4) keys.push(['F32', o2]);
   var NS = window.__nativeSet || window.setInterval, NT = window.setTimeout;
   var snaps = [], cur = null, idx = 0, snapStart = 0, tBegin = utNow();
-  utPrompt('HUNT: start circling SLOWLY now (1 circle per 3 s) and keep going');
+  utPrompt('HUNT: ZIGZAG gently now - small left/right swings, ~1 per 1.5 s');
   // scan in small chunks so the game keeps running; show progress
   function scanStep() {
     if (utNow() - tBegin > 45000) { UT.running = false; utPrompt(''); utShow('FINGER HUNT: memory reads are too slow on this phone (scan did not finish in 45 s). Tell Claude.'); return; }
@@ -764,7 +764,7 @@ function fingerHunt() {
     var end = Math.min(keys.length, idx + FH_CHUNK);
     for (; idx < end; idx++) cur[idx] = fhGet(keys[idx][1], keys[idx][0]);
     var done = (snaps.length + idx / keys.length) / FH_SNAPS;
-    utPrompt('HUNT scanning ' + Math.round(done * 100) + '% - keep circling slowly');
+    utPrompt('HUNT scanning ' + Math.round(done * 100) + '% - keep zigzagging');
     if (idx < keys.length) { NT(scanStep, 0); return; }
     snaps.push(cur); cur = null;
     if (snaps.length < FH_SNAPS) { NT(scanStep, Math.max(0, 300 - (utNow() - snapStart))); return; }
@@ -781,7 +781,7 @@ function fingerHunt() {
     var stop = utSampler(6, function (t) {
       head.push([t, utGet(-0x10)]);
       for (var c = 0; c < cand.length; c++) { var kk = cand[c]; ser[kk].push(fhGet(keys[kk][1], keys[kk][0])); }
-      if (t - lastP > 500) { lastP = t; utPrompt('HUNT measuring ' + cand.length + ' values - keep circling (' + Math.max(0, Math.ceil((7000 - (t - t1)) / 1000)) + ' s)'); }
+      if (t - lastP > 500) { lastP = t; utPrompt('HUNT measuring ' + cand.length + ' values - keep zigzagging (' + Math.max(0, Math.ceil((7000 - (t - t1)) / 1000)) + ' s)'); }
       if (t - t1 > 7000) { stop(); UT.running = false; utPrompt(''); try { fhReport(keys, cand, ser, head); } catch (e) { utShow('FINGER HUNT error: ' + e.message); } }
     });
   }
@@ -855,8 +855,10 @@ function fhReport(keys, cand, ser, head) {
       res.slice(0, 5).forEach(function (r, i) {
         L.push((i + 1) + '. ' + r.what + (r.f.sgn < 0 ? ' mirrored' : '') + (r.f.off ? ' +' + r.f.off + 'deg' : '') + ' | ' + utF(r.f.md) + ' | ' + r.f.lag + ' ms | ' + utF(r.upd));
       });
-      if (res.length && res[0].f.md < 20) L.push('=> FOUND: snake follows your finger after ~' + res[0].f.lag + ' ms; touches update ' + utF(res[0].upd) + '/s');
-      else L.push('=> no clear match (best fit should be under 20 deg). Circle slower and smoother and run again.');
+      var r0 = res[0];
+      if (r0 && r0.f.md < 20 && r0.f.lag <= 400) L.push('=> FOUND: snake follows your finger after ~' + r0.f.lag + ' ms; touches update ' + utF(r0.upd) + '/s');
+      else if (r0 && r0.f.md < 30 && r0.f.lag <= 400) L.push('=> LIKELY: snake follows your finger after ~' + r0.f.lag + ' ms; touches update ' + utF(r0.upd) + '/s');
+      else L.push('=> no clear match. Zigzag gently (small left/right swings, about one per 1.5 s) and run again.');
       utShow(L.join('\n'));
     }
     fine();

@@ -580,22 +580,29 @@ function utShow(t) {
   document.getElementById('utText').textContent = t; box.style.display = 'block';
   if (!UT.open) { UT.open = true; setWindowRect(330, 10, 520, 360); }
 }
+function utPrompt(t) {
+  var el = document.getElementById('utPrompt');
+  if (!el) { el = document.createElement('div'); el.id = 'utPrompt';
+    el.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:100;background:#961D32;color:#fff;font:bold 11px/16px -apple-system,sans-serif;padding:0 4px;pointer-events:none;';
+    document.body.appendChild(el); }
+  el.textContent = t; el.style.display = t ? 'block' : 'none';
+}
 function utClose() { document.getElementById('utBox').style.display = 'none'; UT.open = false; setWindowRect(500, 60, 300, 215); }
 function ultimateTest() {
   if (UT.running) return;
-  if (!baseAddress) { utShow('Press click!! first, in a game.'); return; }
+  if (!baseAddress) { utPrompt('Press click!! first, in a game'); setTimeout(function () { utPrompt(''); }, 3000); return; }
   UT.base = baseAddress; UT.running = true;
   var t0 = utNow(), phase = 0, snaps = [], cands = [], series = {}, cheat = {}, stop = null;
   UT_CHEATS.forEach(function (c) { cheat[c[0]] = []; });
   // phase 1 (6 s): play normally, keep your zoom where you like it  -> zoom + cheats + timers
   // phase 2 (1.2 s): circle with your finger -> scan for heading + wanted angle
   // phase 3 (6 s): keep circling -> sample heading + wanted angle + zoom + cheats every ~4 ms
-  utShow('ULTIMATE TEST  1/3\nPlay normally for 6 s.\nKeep your zoom where you like it.');
+  utPrompt('TEST 1/3: play normally, zoom as you like (6 s)');
   stop = utSampler(4, function (t) {
     var el = t - t0;
     if (phase === 0) {
       UT_CHEATS.forEach(function (c) { cheat[c[0]].push(utGet(c[0])); });
-      if (el > 6000) { phase = 1; t0 = t; utShow('ULTIMATE TEST  2/3\nNow draw TIGHT CIRCLES with your finger\nand keep going until it says done (8 s).'); }
+      if (el > 6000) { phase = 1; t0 = t; utPrompt('TEST 2/3: draw SLOW steady circles until results (8 s)'); }
     } else if (phase === 1) {
       if (el > 1500 && snaps.length < 6 && el > 1500 + snaps.length * 200) {
         var s = {}; for (var o = UT_FROM; o <= UT_TO; o += 8) s[o] = utGet(o); snaps.push(s);
@@ -612,7 +619,7 @@ function ultimateTest() {
     } else if (phase === 2) {
       cands.forEach(function (c) { series[c].push([t, utGet(c)]); });
       UT_CHEATS.forEach(function (c) { cheat[c[0]].push(utGet(c[0])); });
-      if (el > 6000) { stop(); UT.running = false; try { utReport(cands, series, cheat); } catch (e) { utShow('ULTIMATE TEST error: ' + e.message); } }
+      if (el > 6000) { stop(); UT.running = false; utPrompt(''); try { utReport(cands, series, cheat); } catch (e) { utShow('ULTIMATE TEST error: ' + e.message); } }
     }
   });
 }
@@ -673,7 +680,7 @@ function utReport(cands, series, cheat) {
   }
   var L = [];
   var ua = navigator.userAgent, iosv = ((ua.match(/OS ([\d_]+)/) || [])[1] || '?').replace(/_/g, '.');
-  L.push('ULTIMATE TEST v2   iOS(UA) ' + iosv + '   rhythm ' + (window.__rhythmOn ? 'ON' : 'OFF') + '   ' + new Date().toLocaleString());
+  L.push('ULTIMATE TEST v3   iOS(UA) ' + iosv + '   rhythm ' + (window.__rhythmOn ? 'ON' : 'OFF') + '   ' + new Date().toLocaleString());
   L.push('A TIMERS  iOS 1ms timer ' + UT.natRate + '/s (gap p50 ' + utF(utPct(UT.nat, 50)) + ' p95 ' + utF(utPct(UT.nat, 95)) + ' ms)   cheats ' + (window.__rhythmOn ? UT.pumpRate + '/s (p50 ' + utF(utPct(UT.pump, 50)) + ' p95 ' + utF(utPct(UT.pump, 95)) + ')' : UT.natRate + '/s (on the iOS timer)') + '   screen ' + UT.rafRate + 'fps (p95 ' + utF(utPct(UT.raf, 95)) + ' ms)');
   if (!head) {
     L.push('B-D  heading not found - circle the whole time during step 2/3 and run again');

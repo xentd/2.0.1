@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Document</title>
+</head>
+<body>
+</body>
+<script>
+// Loads Tabemaru's live menu (yupa-tt.github.io, the renamed tabemaru-hage) and adds the iOS 18
+// timer rhythm before its scripts run. If the download fails, it opens the page directly (no fix).
+var MENU = 'https://yupa-tt.github.io/2.0.1/';
+var ADAPTER = "    <script>\n// iOS 18 timer rhythm (Ultimate Test on iOS 18.5, rhythm off: 246/s, steady 4 ms). iOS 26 runs\n// these 1 ms timers ~123/s at ~8 ms; this runs every 1 ms setInterval on an even 4.06 ms beat instead.\n(function () {\n  var nativeSet = window.setInterval, nativeClear = window.clearInterval;\n  var tasks = {}, nextId = 1e6, running = false, STEP_MS = 4.06, last = 0;\n  var now = (window.performance && performance.now) ? function () { return performance.now(); } : Date.now;\n  var ch = new MessageChannel();\n  ch.port1.onmessage = function () {\n    var any = false; for (var k in tasks) { any = true; break; }\n    if (!any) { running = false; return; }\n    var t = now();\n    if (t - last >= STEP_MS) {\n      last = (t - last > STEP_MS * 3) ? t : last + STEP_MS;\n      for (var j in tasks) { try { tasks[j](); } catch (e) {} }\n    }\n    ch.port2.postMessage(0);\n  };\n  window.setInterval = function (fn, ms) {\n    if (typeof fn === 'function' && (ms === undefined || ms <= 1)) {\n      var id = nextId++; tasks[id] = fn;\n      if (!running) { running = true; last = now(); ch.port2.postMessage(0); }\n      return id;\n    }\n    return nativeSet.apply(window, arguments);\n  };\n  window.clearInterval = function (id) {\n    if (id in tasks) { delete tasks[id]; return; }\n    return nativeClear.apply(window, arguments);\n  };\n})();\n<\/script>\n";
+(function () {
+  var done = false;
+  function plain() { if (!done) { done = true; location.href = MENU; } }
+  var t = setTimeout(plain, 8000);
+  try {
+    var x = new XMLHttpRequest();
+    x.open('GET', MENU + '?t=' + Date.now(), true);
+    x.onload = function () {
+      if (done) return;
+      if (x.status < 200 || x.status >= 300 || x.responseText.indexOf('<script>') < 0) { clearTimeout(t); plain(); return; }
+      done = true; clearTimeout(t);
+      var page = x.responseText, i = page.indexOf('    <script>');
+      if (i < 0) i = page.indexOf('<script>');
+      page = page.slice(0, i) + ADAPTER + page.slice(i);
+      document.open(); document.write(page); document.close();
+    };
+    x.onerror = function () { clearTimeout(t); plain(); };
+    x.send();
+  } catch (e) { plain(); }
+})();
+</script>
+</html>

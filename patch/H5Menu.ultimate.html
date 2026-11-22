@@ -197,13 +197,13 @@ Once you play AI or online, click the button in play or on the Home Screen
     </div>
 
     <script>
-// iOS 18 timer rhythm (measured on iOS 18.5: ~204/s, steady 5 ms). iOS 26 runs these 1 ms
-// timers ~123/s at ~8 ms; this runs every 1 ms setInterval on an even 4.9 ms beat instead.
+// iOS 18 timer rhythm (Ultimate Test on iOS 18.5, rhythm off: 246/s, steady 4 ms). iOS 26 runs
+// these 1 ms timers ~123/s at ~8 ms; this runs every 1 ms setInterval on an even 4.06 ms beat instead.
 (function () {
   var nativeSet = window.setInterval, nativeClear = window.clearInterval;
   window.__nativeSet = nativeSet;
   window.__rhythmOn = true;
-  var tasks = {}, nextId = 1e6, running = false, STEP_MS = 4.9, last = 0;
+  var tasks = {}, nextId = 1e6, running = false, STEP_MS = 4.06, last = 0;
   var now = (window.performance && performance.now) ? function () { return performance.now(); } : Date.now;
   var ch = new MessageChannel();
   ch.port1.onmessage = function () {

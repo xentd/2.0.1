@@ -592,7 +592,9 @@ function ultimateTest() {
   if (UT.running) return;
   if (!baseAddress) { utPrompt('Press click!! first, in a game'); setTimeout(function () { utPrompt(''); }, 3000); return; }
   UT.base = baseAddress; UT.running = true;
-  var t0 = utNow(), phase = 0, snaps = [], cands = [], series = {}, cheat = {}, stop = null;
+  var t0 = utNow(), phase = 0, snaps = [], cands = [], series = {}, cheat = {}, stop = null, zs = [];
+  function zoomSample() { var a = document.getElementById('zzomsec'), b = document.getElementById('zzom'), zw = document.getElementById('zoomwhere'), zc = document.getElementById('zoomCheckbox');
+    var want = (zw && zw.checked) ? parseFloat(a.value) : ((zc && zc.checked) ? parseFloat(b.value) : NaN); zs.push([utGet(-0x260), want]); }
   UT_CHEATS.forEach(function (c) { cheat[c[0]] = []; });
   // phase 1 (6 s): play normally, keep your zoom where you like it  -> zoom + cheats + timers
   // phase 2 (1.2 s): circle with your finger -> scan for heading + wanted angle
@@ -601,7 +603,7 @@ function ultimateTest() {
   stop = utSampler(4, function (t) {
     var el = t - t0;
     if (phase === 0) {
-      UT_CHEATS.forEach(function (c) { cheat[c[0]].push(utGet(c[0])); });
+      UT_CHEATS.forEach(function (c) { cheat[c[0]].push(utGet(c[0])); }); zoomSample();
       if (el > 6000) { phase = 1; t0 = t; utPrompt('TEST 2/3: draw SLOW steady circles until results (8 s)'); }
     } else if (phase === 1) {
       if (el > 1500 && snaps.length < 6 && el > 1500 + snaps.length * 200) {
@@ -612,14 +614,15 @@ function ultimateTest() {
             for (var j = 0; j < 6; j++) { var v = snaps[j][o2]; if (!(v === v) || Math.abs(v) > 7) { ok = false; break; } if (j && v !== snaps[j - 1][o2]) ch++; }
             if (ok && ch >= 3) cands.push(o2);
           }
-          cands = cands.slice(0, 24); cands.forEach(function (c) { series[c] = []; });
+          cands = cands.slice(0, 21); [-0x10, -0x940, -0x908].forEach(function (k) { if (cands.indexOf(k) < 0) cands.unshift(k); });
+          cands.forEach(function (c) { series[c] = []; });
           phase = 2; t0 = t;
         }
       }
     } else if (phase === 2) {
       cands.forEach(function (c) { series[c].push([t, utGet(c)]); });
-      UT_CHEATS.forEach(function (c) { cheat[c[0]].push(utGet(c[0])); });
-      if (el > 6000) { stop(); UT.running = false; utPrompt(''); try { utReport(cands, series, cheat); } catch (e) { utShow('ULTIMATE TEST error: ' + e.message); } }
+      UT_CHEATS.forEach(function (c) { cheat[c[0]].push(utGet(c[0])); }); zoomSample();
+      if (el > 6000) { stop(); UT.running = false; utPrompt(''); try { utReport(cands, series, cheat, zs); } catch (e) { utShow('ULTIMATE TEST error: ' + e.message); } }
     }
   });
 }
@@ -638,7 +641,7 @@ function utAnalyseAngle(s) {
 function utRate(s, un, i, win) { // angular speed (rad/ms) over a window ending at i
   var j = i; while (j > 0 && s[i][0] - s[j][0] < win) j--; var dt = s[i][0] - s[j][0]; return dt > 0 ? (un[i] - un[j]) / dt : 0;
 }
-function utReport(cands, series, cheat) {
+function utReport(cands, series, cheat, zs) {
   var mamu = utGet(-0x1a8), capDeg = mamu * 1000 / 8 * 180 / Math.PI;
   var A = {}; cands.forEach(function (c) { if (series[c].length > 50) A[c] = utAnalyseAngle(series[c]); });
   // heading: spans a full circle, updates ~once per frame, turns the most
@@ -680,7 +683,7 @@ function utReport(cands, series, cheat) {
   }
   var L = [];
   var ua = navigator.userAgent, iosv = ((ua.match(/OS ([\d_]+)/) || [])[1] || '?').replace(/_/g, '.');
-  L.push('ULTIMATE TEST v3   iOS(UA) ' + iosv + '   rhythm ' + (window.__rhythmOn ? 'ON' : 'OFF') + '   ' + new Date().toLocaleString());
+  L.push('ULTIMATE TEST v4   iOS(UA) ' + iosv + '   rhythm ' + (window.__rhythmOn ? 'ON' : 'OFF') + '   ' + new Date().toLocaleString());
   L.push('A TIMERS  iOS 1ms timer ' + UT.natRate + '/s (gap p50 ' + utF(utPct(UT.nat, 50)) + ' p95 ' + utF(utPct(UT.nat, 95)) + ' ms)   cheats ' + (window.__rhythmOn ? UT.pumpRate + '/s (p50 ' + utF(utPct(UT.pump, 50)) + ' p95 ' + utF(utPct(UT.pump, 95)) + ')' : UT.natRate + '/s (on the iOS timer)') + '   screen ' + UT.rafRate + 'fps (p95 ' + utF(utPct(UT.raf, 95)) + ' ms)');
   if (!head) {
     L.push('B-D  heading not found - circle the whole time during step 2/3 and run again');
@@ -713,8 +716,12 @@ function utReport(cands, series, cheat) {
     var flips = 0; for (var i = 1; i < v.length; i++) if (v[i] !== v[i - 1]) flips++;
     var held = 100 * cnt[top] / v.length;
     if (c[1] === 'zoom') {
-      var others = Object.keys(cnt).filter(function (k) { return +k !== +top; }).sort(function (a, b) { return cnt[b] - cnt[a]; }).slice(0, 2).map(function (k) { return utF(+k, 3); });
-      L.push('E ZOOM    your value ' + utF(+top, 3) + ' held ' + utF(held) + '% of the time, snapped ' + utF(flips / secsAll) + 'x/s' + (others.length ? ' (game pulls to ' + others.join(', ') + ')' : ''));
+      var zz = (zs || []).filter(function (p) { return p[0] === p[0] && p[1] === p[1]; });
+      if (!zz.length) { L.push('E ZOOM    zoom slider not on - tick Zoom and set it before the test'); return; }
+      var hit = 0, snaps2 = 0, prevHit = true, away = {};
+      zz.forEach(function (p) { var ok = Math.abs(p[0] - p[1]) < 0.0015; if (ok) hit++; else away[utF(p[0], 3)] = (away[utF(p[0], 3)] || 0) + 1; if (prevHit && !ok) snaps2++; prevHit = ok; });
+      var pulls = Object.keys(away).sort(function (a, b) { return away[b] - away[a]; }).slice(0, 2);
+      L.push('E ZOOM    your zoom held ' + utF(100 * hit / zz.length) + '% of the time, game snapped it ' + utF(snaps2 / secsAll) + 'x/s' + (pulls.length ? ' (to ' + pulls.join(', ') + ')' : ''));
     } else parts.push(c[1] + ' ' + utF(held, 0) + '%' + (flips ? '(' + utF(flips / secsAll) + '/s)' : ''));
   });
   L.push('F HELD    ' + parts.join('  ') + '   (bg = game counters, always move)');

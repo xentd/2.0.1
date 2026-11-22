@@ -191,6 +191,38 @@ Once you play AI or online, click the button in play or on the Home Screen
     </div>
 
     <script>
+// iOS 18 timer rhythm (measured on iOS 18.5: ~204/s, steady 5 ms). iOS 26 runs these 1 ms
+// timers ~123/s at ~8 ms; this runs every 1 ms setInterval on an even 4.9 ms beat instead.
+(function () {
+  var nativeSet = window.setInterval, nativeClear = window.clearInterval;
+  var tasks = {}, nextId = 1e6, running = false, STEP_MS = 4.9, last = 0;
+  var now = (window.performance && performance.now) ? function () { return performance.now(); } : Date.now;
+  var ch = new MessageChannel();
+  ch.port1.onmessage = function () {
+    var any = false; for (var k in tasks) { any = true; break; }
+    if (!any) { running = false; return; }
+    var t = now();
+    if (t - last >= STEP_MS) {
+      last = (t - last > STEP_MS * 3) ? t : last + STEP_MS;
+      for (var j in tasks) { try { tasks[j](); } catch (e) {} }
+    }
+    ch.port2.postMessage(0);
+  };
+  window.setInterval = function (fn, ms) {
+    if (typeof fn === 'function' && (ms === undefined || ms <= 1)) {
+      var id = nextId++; tasks[id] = fn;
+      if (!running) { running = true; last = now(); ch.port2.postMessage(0); }
+      return id;
+    }
+    return nativeSet.apply(window, arguments);
+  };
+  window.clearInterval = function (id) {
+    if (id in tasks) { delete tasks[id]; return; }
+    return nativeClear.apply(window, arguments);
+  };
+})();
+</script>
+    <script>
 let baseAddress = null; // baseAddress の初期値
 let zoomLocker = null; // ズーム用のロック用変数
 let zoom2Locker = null; // ズーム用のロック用変数

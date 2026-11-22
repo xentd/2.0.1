@@ -648,16 +648,21 @@ function utReport(cands, series, cheat, zs) {
   // lagFit(f, l): how well f(t) matches l(t - delay); best delay and mean angle error (deg)
   function lagFit(fc, lc) {
     var fs = series[fc], ls = series[lc], best = null;
-    for (var lagMs = 0; lagMs <= 600; lagMs += 8) {
-      var j = 0, sum = 0, m = 0;
+    for (var sgn = 1; sgn >= -1; sgn -= 2) for (var lagMs = 0; lagMs <= 600; lagMs += 8) {
+      var j = 0, ds = [], sx = 0, sy = 0;
       for (var i = 0; i < fs.length; i += 2) {
         var tt = fs[i][0] - lagMs; if (tt < ls[0][0]) continue;
         while (j + 1 < ls.length && ls[j + 1][0] <= tt) j++;
-        sum += Math.abs(utAngDiff(fs[i][1], ls[j][1])); m++;
+        var d = utAngDiff(fs[i][1], sgn * ls[j][1]); ds.push(d); sx += Math.cos(d); sy += Math.sin(d);
       }
-      if (m < 50) continue;
-      var md = sum / m * 180 / Math.PI;
-      if (!best || md < best.md) best = { md: md, lag: lagMs };
+      if (ds.length < 50) continue;
+      // offsets limited to the standard axis conventions, so delay and offset stay separable
+      for (var oq = 0; oq < 4; oq++) {
+        var off = oq * Math.PI / 2, sum = 0;
+        for (var q = 0; q < ds.length; q++) sum += Math.abs(utAngDiff(ds[q], off));
+        var md = sum / ds.length * 180 / Math.PI;
+        if (!best || md < best.md) best = { md: md, lag: lagMs, sgn: sgn, off: oq * 90 };
+      }
     }
     return best;
   }
@@ -673,17 +678,17 @@ function utReport(cands, series, cheat, zs) {
     if (pair) head = pair.f;
     else circ.forEach(function (c) { if (!head || Math.abs(A[c].total) > Math.abs(A[head].total)) head = c; });
   }
-  // finger = -0x940 (found on both phones); never the server's copy of the heading (-0x908)
-  pair = null;
-  if (head && A['-2368']) { var rf = lagFit(head, '-2368'); if (rf) pair = { f: head, l: '-2368', md: rf.md, lag: rf.lag }; }
-  if (head && !pair) Object.keys(A).forEach(function (l) {
+  // finger: the angle value the heading follows (allowing mirrored / offset angles); keep the top 3
+  var fits = [];
+  if (head) Object.keys(A).forEach(function (l) {
     if (l === head || l === '-2312' || A[l].span < 1.5 || A[l].upd < 10) return;
-    var r = lagFit(head, l); if (!r || r.lag < 8) return;
-    if (!pair || r.md < pair.md) pair = { f: head, l: l, md: r.md, lag: r.lag };
+    var r = lagFit(head, l); if (r) fits.push({ f: head, l: l, md: r.md, lag: r.lag, sgn: r.sgn, off: r.off });
   });
+  fits.sort(function (a, b) { return a.md - b.md; });
+  pair = fits[0] || null;
   var L = [];
   var ua = navigator.userAgent, iosv = ((ua.match(/OS ([\d_]+)/) || [])[1] || '?').replace(/_/g, '.');
-  L.push('ULTIMATE TEST v5   iOS(UA) ' + iosv + '   rhythm ' + (window.__rhythmOn ? 'ON' : 'OFF') + '   ' + new Date().toLocaleString());
+  L.push('ULTIMATE TEST v6   iOS(UA) ' + iosv + '   rhythm ' + (window.__rhythmOn ? 'ON' : 'OFF') + '   ' + new Date().toLocaleString());
   L.push('A TIMERS  iOS 1ms timer ' + UT.natRate + '/s (gap p50 ' + utF(utPct(UT.nat, 50)) + ' p95 ' + utF(utPct(UT.nat, 95)) + ' ms)   cheats ' + (window.__rhythmOn ? UT.pumpRate + '/s (p50 ' + utF(utPct(UT.pump, 50)) + ' p95 ' + utF(utPct(UT.pump, 95)) + ')' : UT.natRate + '/s (on the iOS timer)') + '   screen ' + UT.rafRate + 'fps (p95 ' + utF(utPct(UT.raf, 95)) + ' ms)');
   if (!head) {
     L.push('B-D  heading not found - circle the whole time during step 2/3 and run again');
@@ -697,12 +702,13 @@ function utReport(cands, series, cheat, zs) {
     var r100 = []; for (var i = 1; i < hs.length; i++) r100.push(Math.abs(utRate(hs, h.un, i, 100)) * 1000 * 180 / Math.PI);
     L.push('B TURN    heading ' + utHex(+head) + '  avg ' + utF(h.avg) + ' deg/s  (game cap ' + utF(capDeg) + ')  p90 ' + utF(utPct(r100, 90)) + '  turned ' + utF(h.total, 0) + ' deg');
     L.push('C PACING  game frames ' + utF(h.upd) + '/s  gap ms p50 ' + utF(utPct(h.gaps, 50)) + ' p90 ' + utF(utPct(h.gaps, 90)) + ' max ' + utF(utPct(h.gaps, 100)) + '  long frames ' + utF(100 * longGaps / Math.max(1, h.gaps.length)) + '%   steps: normal ' + utF(100 * normal / n) + '% double ' + utF(100 * dbl / n) + '% triple+ ' + utF(100 * tri / n) + '%');
-    var best = (pair && pair.f === head) ? { c: pair.l, md: pair.md, lag: pair.lag } : null;
+    var best = pair ? { c: pair.l, md: pair.md, lag: pair.lag, sgn: pair.sgn, off: pair.off } : null;
     if (best) {
       var wf = A[best.c];
-      L.push('D INPUT   finger ' + utHex(+best.c) + '  touches reach the game ' + utF(wf.upd) + '/s  gap p50 ' + utF(utPct(wf.gaps, 50)) + ' p95 ' + utF(utPct(wf.gaps, 95)) + ' max ' + utF(utPct(wf.gaps, 100)) + ' ms' +
-        (best.md < 45 && best.lag >= 8 ? '  snake follows after ' + best.lag + ' ms (fit ' + utF(best.md) + ' deg)' : '  (delay: circle slower to measure)'));
+      L.push('D INPUT   finger ' + utHex(+best.c) + (best.sgn < 0 ? ' (mirrored)' : '') + (best.off ? ' (+' + best.off + ' deg)' : '') + '  touches reach the game ' + utF(wf.upd) + '/s  gap p50 ' + utF(utPct(wf.gaps, 50)) + ' p95 ' + utF(utPct(wf.gaps, 95)) + ' max ' + utF(utPct(wf.gaps, 100)) + ' ms' +
+        (best.md < 45 && best.lag >= 8 ? '  SNAKE FOLLOWS AFTER ' + best.lag + ' ms (fit ' + utF(best.md) + ' deg)' : '  (delay not measurable this run)'));
     } else L.push('D INPUT   finger not found - circle steadily the whole time');
+    if (fits.length) L.push('  top matches: ' + fits.slice(0, 3).map(function (f) { return utHex(+f.l) + (f.sgn < 0 ? 'm' : '') + ' ' + f.lag + 'ms ' + utF(f.md) + 'deg ' + utF(A[f.l].upd) + '/s'; }).join(' | '));
     if (A['-2312']) L.push('  server heading -908 updates ' + utF(A['-2312'].upd) + '/s (gap p50 ' + utF(utPct(A['-2312'].gaps, 50)) + ' ms)');
   }
   // zoom + cheats: held % = samples equal to the most common value; flips/s = value changes per second

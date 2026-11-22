@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Agu+Display&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Agu Display', sans-serif;
+            color: #FFFFFF;
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-user-drag: none;
+        }
+
+        .titlebar {
+            background-color: #961D32Fb;
+            width: 300px;
+            height: 25px;
+            display: none;
+        }
+
+        .content {
+            background-color: #1F7035Fb;
+            width: 295px;
+            height: 160px;
+            display: none;
+            padding-left: 5px;
+        }
+
+        .intro {
+            color: #961D32;
+        }
+
+        hr {
+            margin: 0;
+            height: 0px;
+            border: solid 0.9px #961D32;
+        }
+
+        .checkboxItem {
+            display: inline-flex;
+            align-items: center;
+            column-gap: 4px;
+            line-height: 1;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        .checkboxItem:not(:last-of-type) {
+            margin-right: 1px;
+        }
+
+        .checkbox {
+            appearance: none;
+            position: relative;
+            width: 20px;
+            height: 20px;
+            border: 1px solid #676770;
+            cursor: pointer;
+            background-color: #961D32d9;
+            border-radius: 1px;
+        }
+
+        .checkbox:checked {
+            border: 1px solid #676770;
+            background-color: #961D32d9;
+        }
+
+        .checkbox:checked::after {
+            content: "";
+            position: absolute;
+            top: 3px;
+            left: 2px;
+            width: 12px;
+            height: 6px;
+            border-bottom: 2px solid #1F7035;
+            border-left: 2px solid #1F7035;
+            transform: rotate(-45deg);
+        }
+
+        .dgBtn { font-size: 12px; padding: 4px 6px; background:#961D32; color:#fff; border:1px solid #fff4; }
+        .inputRange {
+            appearance: none;
+            width: 200px;
+            height: 18px;
+            border: 1px solid #676770;
+            border-radius: 1px;
+            background: #961D32d9;
+            cursor: pointer;
+        }
+
+        .inputRange::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 20px;
+            border: 1px solid #676770;
+            border-radius: 1px;
+            background: #1F7035;
+            box-shadow: none;
+        }
+
+        /* スクロールを可能にし、スクロールバーを非表示にする */
+        .scrollable {
+            overflow-y: scroll;
+            scrollbar-width: none;
+        }
+
+        .scrollable::-webkit-scrollbar {
+            display: none;
+        }
+
+        .start-button {
+            background-color: #961D32;
+            color: white;
+            padding: 5px 10px;
+            border: none;
+            cursor: pointer;
+            font-size: 15px;
+            margin: 10px 0;
+            border: solid 1px #676770;
+            height: 40px;
+            width: 200px;
+        }
+
+        .start-button:hover {
+            background-color: #961D32;
+        }
+        .farstcontent {
+            background-color: #1F7035Fb;
+            width: 295px;
+            height: 160px;
+            display: block; /* 初期状態は非表示 */
+            padding-left: 5px;
+        }
+    </style>
+</head>
+
+<body>
+<div class="farstcontent">
+    <button class="start-button" onclick="startExecution()">click!!</button>
+<p>
+Once you play AI or online, click the button in play or on the Home Screen
+</p>
+</div>
+    <div class="titlebar" id="titlebar">
+        <div id="ttt" onclick="openwindow()">&nbsp;🎅 Slither.io <span id="realtime"></span></div>
+    </div>
+    <input type="range" name="range" value="0.70" min="0.01" max="1.0" step="0.003" id="zzomsec" class="inputRange" style="display: none; margin-top: 17px; width: 215px;"/>
+
+    <div id="content" class="content scrollable">
+        <div class="intro">ModMenu by Tabemaru (iOS 18 rhythm + tests)</div>
+        <div class="intro">Diagnostics</div>
+        <div style="display:flex; gap:4px; flex-wrap:wrap; margin:4px 0 8px;">
+          <button class="dgBtn" onclick="diagReport()">Report</button>
+          <button class="dgBtn" onclick="diagTurnTest()">Turn test</button>
+          <button class="dgBtn" onclick="diagSmooth()">Smoothness</button>
+          <button class="dgBtn" onclick="diagChanges()">Find (while turning)</button>
+          <button class="dgBtn" onclick="diagDump()">Dump</button>
+          <button class="dgBtn" onclick="diagReset()">Reset</button>
+        </div>
+        <hr>
+                <label class="checkboxItem">
+    <input type="checkbox" name="checkbox" id="icon" value="選択肢3" class="checkbox" onchange="hide()" />
+    Hide icon
+</label>
+        <label class="checkboxItem">
+            <input type="checkbox" name="checkbox" id="backblack" value="Background-black" class="checkbox" />
+            Background black
+        </label>
+        <label class="checkboxItem">
+            <input type="checkbox" name="checkbox" id="NoEffect" value="Noeffect" class="checkbox" />
+            No boost effect(online only)
+        </label>
+        <label class="checkboxItem">
+            <input type="checkbox" name="checkbox" id="smallfood" value="選択肢3" class="checkbox" />
+            Small food
+        </label>
+                <label class="checkboxItem">
+            <input type="checkbox" name="checkbox" id="bigname" value="選択肢4" class="checkbox" />
+            Big name
+        </label>
+        <hr>
+    <a style="font-size: 13px">Display the document under the titlebar</a>
+         <label class="checkboxItem">
+            <input type="checkbox" name="checkbox" id="zoomwhere" value="選択肢4" class="checkbox" />
+            Zoom
+        </label>
+   
+        <hr>
+        <label class="checkboxItem">
+            <input type="checkbox" id="zoomCheckbox" class="checkbox" onchange="toggleSlider()" />
+            <span style="line-height: 20px;">Zoom</span>
+        </label>
+        <input type="range" name="range" value="0.70" min="0.01" max="1.0" step="0.01" id="zzom" class="inputRange" disabled />
+        <hr>
+        <div class="intro">Control tuning</div>
+        <div style="font-size: 13px; margin: 4px 0;">Steering value: <b id="ctrlShow">8</b> <span style="opacity:.7">(Tabemaru: 8)</span></div>
+        <input type="range" min="0" max="20" step="0.5" value="8" id="ctrlVal" class="inputRange" />
+        <label class="checkboxItem">
+            <input type="checkbox" id="ctrlOff" class="checkbox" />
+            Off (don't write it)
+        </label>
+        <div style="font-size: 12px; opacity: .8; margin-top: 4px;">Timer rate: <span id="ctrlRate">…</span>/s</div>
+    </div>
+    <div id="dgBox" style="display:none; position:fixed; left:0; top:0; width:520px; height:360px; background:#000000ee; z-index:99; overflow:auto;">
+      <button class="dgBtn" onclick="diagClose()" style="position:sticky; top:0; float:right;">Close</button>
+      <button class="dgBtn" onclick="diagReport()" style="position:sticky; top:0; float:right;">Refresh</button>
+      <pre id="dgText" style="margin:4px; font: 10px/1.35 Menlo, monospace; white-space: pre-wrap; word-break: break-all; color:#fff;"></pre>
+    </div>
+
+    <script>
+// ===== xentd: iOS 18 write rhythm on iOS 26 =====
+// Measured on the same IPA: iOS 18.5 runs the menu's 1 ms timers ~204 times/s, every 5 ms,
+// steadily. iOS 26 runs them ~123 times/s, every ~8 ms, with more jitter. This replaces every
+// 1 ms setInterval with one pump that runs them exactly every 4.9 ms (~200/s), like iOS 18.
+// The title bar shows the measured rate (R).
+(function () {
+  var nativeSet = window.setInterval, nativeClear = window.clearInterval;
+  var tasks = {}, nextId = 1e6, running = false, passes = 0, STEP_MS = 4.9, last = 0;
+  var now = (window.performance && performance.now) ? function () { return performance.now(); } : Date.now;
+  var ch = new MessageChannel();
+  ch.port1.onmessage = function () {
+    var any = false; for (var k in tasks) { any = true; break; }
+    if (!any) { running = false; return; }
+    var t = now();
+    if (t - last >= STEP_MS) {
+      last = (t - last > STEP_MS * 3) ? t : last + STEP_MS;   // keep an even 4.9 ms grid
+      passes++;
+      for (var j in tasks) { try { tasks[j](); } catch (e) {} }
+    }
+    ch.port2.postMessage(0);
+  };
+  window.setInterval = function (fn, ms) {
+    if (typeof fn === 'function' && (ms === undefined || ms <= 1)) {
+      var id = nextId++; tasks[id] = fn;
+      if (!running) { running = true; last = now(); ch.port2.postMessage(0); }
+      return id;
+    }
+    return nativeSet.apply(window, arguments);
+  };
+  window.clearInterval = function (id) {
+    if (id in tasks) { delete tasks[id]; return; }
+    return nativeClear.apply(window, arguments);
+  };
+  window.__rate = '';
+  nativeSet(function () { window.__rate = ' R' + passes; passes = 0; }, 1000);
+  window.__nativeSetInterval = nativeSet;
+})();
+</script>
+    <script>
+// ===================== DIAGNOSTICS (added by xentd, test build) =====================
+// Measures, while you play: real timer rates, whether the game overwrites the menu's
+// writes, the game's own values at the written addresses, nearby movement constants,
+// and which values change while you turn. Nothing here changes gameplay by itself.
+var DG = {
+  t0: Date.now(), base: null,
+  names: { '-950': 'steer(8)', '-1c8': 'speed nsp1', '-260': 'zoom', '-150': 'bg 1', '-140': 'bg 2',
+           '-220': 'speed slider', '-180': 'food', '-158': 'name' },
+  w: {},            // per address: {n, changed, last, native, nativeAtStart}
+  tick: [], raf: [], tickN: 0, rafN: 0, tickRate: 0, rafRate: 0,
+  consts: [], startVals: {}, changes: [], dumpPage: 0, snap: null, getOk: null
+};
+function dgNow() { return (window.performance && performance.now) ? performance.now() : Date.now(); }
+function dgOff(addr) {
+  if (!DG.base) return addr;
+  var d = parseInt(addr, 16) - parseInt(DG.base, 16);
+  return (d < 0 ? '-' : '+') + Math.abs(d).toString(16);
+}
+function dgGet(addr) {
+  try { var v = h5gg.getValue(addr, 'F64'); DG.getOk = true; return Number(v); }
+  catch (e) { DG.getOk = false; return NaN; }
+}
+// Every menu write goes through W(): it first reads what is there now. If the value is no
+// longer what we wrote last time, the game changed it in between ("lost" write).
+function W(addr, val, type) {
+  var a = String(addr).toLowerCase();
+  var s = DG.w[a] || (DG.w[a] = { n: 0, changed: 0, last: undefined, native: undefined });
+  var cur = dgGet(a);
+  if (s.last !== undefined && cur === cur && Math.abs(cur - s.last) > 1e-9) { s.changed++; s.native = cur; }
+  s.n++; s.last = Number(val);
+  return h5gg.setValue(a, val, type);
+}
+// Timer probes: a plain 1 ms setInterval (what the cheats use) and the screen refresh.
+(function () {
+  var last = dgNow();
+  setInterval(function () {
+    var t = dgNow(); DG.tick.push(t - last); last = t; DG.tickN++;
+    if (DG.tick.length > 3000) DG.tick.splice(0, DG.tick.length - 3000);
+  }, 1);
+  var lr = dgNow();
+  function f() { var t = dgNow(); DG.raf.push(t - lr); lr = t; DG.rafN++;
+    if (DG.raf.length > 600) DG.raf.splice(0, DG.raf.length - 600); requestAnimationFrame(f); }
+  if (window.requestAnimationFrame) requestAnimationFrame(f);
+  setInterval(function () { DG.tickRate = DG.tickN; DG.rafRate = DG.rafN; DG.tickN = 0; DG.rafN = 0; }, 1000);
+  DG.nativeN = 0; DG.nativeRate = 0;
+  (window.__nativeSetInterval || setInterval)(function () { DG.nativeN++; }, 1);
+  (window.__nativeSetInterval || setInterval)(function () { DG.nativeRate = DG.nativeN; DG.nativeN = 0; }, 1000);
+})();
+function dgPct(arr, p) {
+  if (!arr.length) return NaN;
+  var s = arr.slice().sort(function (a, b) { return a - b; });
+  return s[Math.min(s.length - 1, Math.floor(p / 100 * s.length))];
+}
+var DG_FROM = -0xC00, DG_TO = 0x200;   // scanned range around the base address
+function dgRead(off) { return dgGet('0x' + (parseInt(DG.base, 16) + off).toString(16)); }
+// Called once on Start, before any cheat writes begin.
+function diagOnStart(base) {
+  DG.base = base;
+  ['-950', '-1c8', '-260', '-150', '-140'].forEach(function (k) {
+    DG.startVals[k] = dgRead(-parseInt(k.slice(1), 16));
+  });
+  var known = [[4.8, 'spangdv'], [5.39, 'nsp1'], [0.4, 'nsp2'], [14, 'nsp3'], [0.43, 'constrict'],
+               [0.033, 'mamu?'], [0.028, 'mamu2?'], [21600, 'grd?'], [411, 'anchor'], [430, 'anchor'], [-1, 'anchor']];
+  DG.consts = [];
+  for (var off = DG_FROM; off <= DG_TO; off += 8) {
+    var v = dgRead(off);
+    for (var i = 0; i < known.length; i++)
+      if (v === v && Math.abs(v - known[i][0]) < 1e-9) DG.consts.push([off, v, known[i][1]]);
+  }
+}
+function dgHex(off) { return (off < 0 ? '-' : '+') + Math.abs(off).toString(16); }
+function dgFmt(v) { return (v === v) ? (Math.abs(v) >= 1e5 || (v !== 0 && Math.abs(v) < 1e-3) ? v.toExponential(3) : (+v.toFixed(4)).toString()) : '?'; }
+// Hold a turn, press the button: 6 snapshots over ~1.2 s, list values that keep changing.
+function diagChanges() {
+  if (!DG.base) { dgShow('Press click!! (Start) first.'); return; }
+  var snaps = [], n = 0;
+  dgShow('Scanning… keep turning for 1 second');
+  var iv = setInterval(function () {
+    var s = {};
+    for (var off = DG_FROM; off <= DG_TO; off += 8) s[off] = dgRead(off);
+    snaps.push(s);
+    if (++n >= 6) {
+      clearInterval(iv);
+      var out = [];
+      for (var off2 = DG_FROM; off2 <= DG_TO; off2 += 8) {
+        var c = 0;
+        for (var j = 1; j < snaps.length; j++) if (snaps[j][off2] !== snaps[j - 1][off2]) c++;
+        if (c >= 3) out.push([off2, snaps[0][off2], snaps[snaps.length - 1][off2], c]);
+      }
+      DG.changes = out;
+      diagReport();
+    }
+  }, 200);
+}
+function diagReport() {
+  var L = [];
+  var up = Math.round((Date.now() - DG.t0) / 1000);
+  L.push('DIAG v3 + iOS18 rhythm  ' + new Date().toLocaleString() + '  up ' + up + 's');
+  L.push('iOS: ' + ((navigator.userAgent.match(/OS ([\d_]+)/) || [])[1] || '?').replace(/_/g, '.') + '  base ' + (DG.base || 'not started') + '  getValue ' + (DG.getOk === null ? '-' : DG.getOk ? 'ok' : 'FAILED'));
+  L.push('RHYTHM pump (cheat writes): ' + (window.__rate || '-').trim() + '/s   iOS native 1ms timer: ' + DG.nativeRate + '/s');
+  L.push('TIMER (via pump) 1ms: ' + DG.tickRate + '/s  gap ms p50 ' + dgFmt(dgPct(DG.tick, 50)) + ' p95 ' + dgFmt(dgPct(DG.tick, 95)) + ' max ' + dgFmt(dgPct(DG.tick, 100)));
+  L.push('SCREEN: ' + DG.rafRate + ' fps  frame ms p50 ' + dgFmt(dgPct(DG.raf, 50)) + ' p95 ' + dgFmt(dgPct(DG.raf, 95)) + ' max ' + dgFmt(dgPct(DG.raf, 100)));
+  L.push('WRITES (addr: writes, game changed it %, game value, we write):');
+  Object.keys(DG.w).forEach(function (a) {
+    var s = DG.w[a], o = dgOff(a);
+    L.push(' ' + o + ' ' + (DG.names[o] || '') + ': ' + s.n + ', ' + (s.n > 1 ? (100 * s.changed / (s.n - 1)).toFixed(1) : '0') + '%, ' + (s.native === undefined ? '-' : dgFmt(s.native)) + ', ' + dgFmt(s.last));
+  });
+  L.push('AT START: ' + Object.keys(DG.startVals).map(function (k) { return k + '=' + dgFmt(DG.startVals[k]); }).join(' '));
+  L.push('CONSTANTS: ' + (DG.consts.length ? DG.consts.map(function (c) { return dgHex(c[0]) + '=' + dgFmt(c[1]) + '(' + c[2] + ')'; }).join(' ') : '-'));
+  L.push('CHANGING WHILE TURNING: ' + (DG.changes.length ? DG.changes.slice(0, 18).map(function (c) { return dgHex(c[0]) + ':' + dgFmt(c[1]) + '>' + dgFmt(c[2]); }).join(' ') + (DG.changes.length > 18 ? ' (+' + (DG.changes.length - 18) + ')' : '') : 'press Find while turning'));
+  dgShow(L.join('\n'));
+}
+function diagDump() {
+  if (!DG.base) { dgShow('Press click!! (Start) first.'); return; }
+  var per = 60, all = [];
+  for (var off = DG_FROM; off <= DG_TO; off += 8) { var v = dgRead(off); if (v === v && v !== 0) all.push(dgHex(off) + '=' + dgFmt(v)); }
+  var pages = Math.max(1, Math.ceil(all.length / per)), p = DG.dumpPage % pages;
+  DG.dumpPage++;
+  dgShow('DUMP page ' + (p + 1) + '/' + pages + ' (non-zero F64, offset from base)\n' + all.slice(p * per, (p + 1) * per).join('  '));
+}
+function diagReset() { Object.keys(DG.w).forEach(function (a) { DG.w[a].n = 0; DG.w[a].changed = 0; }); DG.tick = []; DG.raf = []; DG.changes = []; diagReport(); }
+var dgOpen = false;
+function dgShow(text) {
+  var box = document.getElementById('dgBox');
+  document.getElementById('dgText').textContent = text;
+  box.style.display = 'block';
+  if (!dgOpen) { dgOpen = true; setWindowRect(330, 10, 520, 360); }
+}
+function diagClose() {
+  document.getElementById('dgBox').style.display = 'none';
+  dgOpen = false; setWindowRect(500, 60, 300, 215);
+}
+// ---- Turn test: find the snake's heading in memory and measure its real turn speed ----
+// Phase 1 (1 s): snapshots of the scanned range -> candidates that keep changing and look like
+// angles (always between -7 and 7). Phase 2 (3 s): sample only those candidates on every timer
+// tick with timestamps, unwrap them as angles, and measure rotation speed in degrees/second.
+// The game's own turn cap for a small snake is mamu * 1000/8 rad/s (~236 deg/s with mamu 0.033).
+function diagTurnTest() {
+  if (!DG.base) { dgShow('Press click!! (Start) first.'); return; }
+  dgShow('TURN TEST: keep turning in circles, finger held down…\n(1 of 2: finding the heading)');
+  var snaps = [], n = 0;
+  var iv = setInterval(function () {
+    var s = {};
+    for (var off = DG_FROM; off <= DG_TO; off += 8) s[off] = dgRead(off);
+    snaps.push(s);
+    if (++n < 6) return;
+    clearInterval(iv);
+    var cands = [];
+    for (var off2 = DG_FROM; off2 <= DG_TO; off2 += 8) {
+      var ok = true, ch = 0;
+      for (var j = 0; j < snaps.length; j++) {
+        var v = snaps[j][off2];
+        if (!(v === v) || Math.abs(v) > 7) { ok = false; break; }
+        if (j && v !== snaps[j - 1][off2]) ch++;
+      }
+      if (ok && ch >= 4) cands.push(off2);
+    }
+    if (!cands.length) { dgShow('TURN TEST: no heading-like values found. Make sure you are turning in circles while it runs.'); return; }
+    cands = cands.slice(0, 40);
+    dgShow('TURN TEST: keep turning…\n(2 of 2: measuring ' + cands.length + ' values for 3 s)');
+    var series = {}; cands.forEach(function (c) { series[c] = []; });
+    var t0 = dgNow();
+    var iv2 = setInterval(function () {
+      var t = dgNow();
+      cands.forEach(function (c) { series[c].push([t, dgRead(c)]); });
+      if (t - t0 > 3000) { clearInterval(iv2); dgTurnReport(cands, series); }
+    }, 1);
+  }, 200);
+}
+function dgTurnReport(cands, series) {
+  var mamu = dgRead(-0x1a8), cap = mamu * 1000 / 8 * 180 / Math.PI;
+  var rows = [];
+  cands.forEach(function (c) {
+    var s = series[c]; if (s.length < 20) return;
+    var lo = Infinity, hi = -Infinity;
+    s.forEach(function (p) { lo = Math.min(lo, p[1]); hi = Math.max(hi, p[1]); });
+    var span = hi - lo;
+    // unwrap as an angle (jumps bigger than pi are wraparounds)
+    var unwrapped = [s[0][1]], k = 0;
+    for (var i = 1; i < s.length; i++) {
+      var d = s[i][1] - s[i - 1][1];
+      if (d > Math.PI) k -= 2 * Math.PI; else if (d < -Math.PI) k += 2 * Math.PI;
+      unwrapped.push(s[i][1] + k);
+    }
+    var total = unwrapped[unwrapped.length - 1] - unwrapped[0];
+    var secs = (s[s.length - 1][0] - s[0][0]) / 1000;
+    // rate over ~100 ms windows (smooths timer jitter)
+    var rates = [], j0 = 0;
+    for (var j = 1; j < s.length; j++) {
+      while (s[j][0] - s[j0][0] > 100) j0++;
+      if (j0 > 0 && s[j][0] - s[j0 - 1][0] >= 90) {
+        var dt = (s[j][0] - s[j0 - 1][0]) / 1000;
+        rates.push(Math.abs(unwrapped[j] - unwrapped[j0 - 1]) / dt * 180 / Math.PI);
+      }
+    }
+    var changes = 0; for (var q = 1; q < s.length; q++) if (s[q][1] !== s[q - 1][1]) changes++;
+    rows.push({ off: c, total: total * 180 / Math.PI, avg: Math.abs(total) / secs * 180 / Math.PI,
+                p90: dgPct(rates, 90), max: dgPct(rates, 100), span: span, upd: changes / secs, n: s.length });
+  });
+  // the heading turns steadily while circling: most total rotation, values spanning about 2*pi
+  rows.sort(function (a, b) { return Math.abs(b.total) - Math.abs(a.total); });
+  for (var h = 0; h < rows.length; h++) if (rows[h].span > 5.9 && rows[h].span < 6.4 && rows[h].upd > 45) { DG.headOff = rows[h].off; break; }
+  var L = ['TURN TEST  (game turn cap for a small snake: ' + dgFmt(cap) + ' deg/s, mamu ' + dgFmt(mamu) + ')',
+           'offset: turned deg | avg deg/s | p90 deg/s | max deg/s | value range | updates/s'];
+  rows.slice(0, 10).forEach(function (r) {
+    L.push(dgHex(r.off) + ': ' + dgFmt(r.total) + ' | ' + dgFmt(r.avg) + ' | ' + dgFmt(r.p90) + ' | ' + dgFmt(r.max) + ' | ' + dgFmt(r.span) + ' | ' + dgFmt(r.upd));
+  });
+  L.push('timer ' + DG.tickRate + '/s, samples ' + (rows[0] ? rows[0].n : 0));
+  dgShow(L.join('\n'));
+}
+// ---- Smoothness test: game frame pacing read from the heading's step sizes ----
+// While circling at full turn, the game turns mamu*1000/8 rad per second of ITS OWN frame time,
+// so each frame's heading step = turn cap x that frame's duration. Step sizes therefore show
+// the game's real frame times, independent of this menu's timer. Default heading offset is -0x10
+// (found by Turn test on this phone); Turn test updates it if it finds a better match.
+DG.headOff = -0x10;
+function diagSmooth() {
+  if (!DG.base) { dgShow('Press click!! (Start) first.'); return; }
+  var v0 = dgRead(DG.headOff);
+  if (!(v0 === v0) || v0 < -0.01 || v0 > 6.3) { dgShow('SMOOTHNESS: heading at ' + dgHex(DG.headOff) + ' reads ' + dgFmt(v0) + ' - run Turn test first.'); return; }
+  dgShow('SMOOTHNESS: hold a tight full-speed circle for 6 seconds…');
+  var mamu = dgRead(-0x1a8), cap = mamu * 1000 / 8 * 180 / Math.PI;   // deg/s
+  var steps = [], lastV = v0, lastT = dgNow(), lastChangeT = lastT, t0 = lastT, maxGap = 0, stalls = 0, merged = 0;
+  var iv = setInterval(function () {
+    var t = dgNow(), v = dgRead(DG.headOff), gap = t - lastT;
+    maxGap = Math.max(maxGap, gap);
+    if (v !== lastV) {
+      var d = v - lastV; if (d > Math.PI) d -= 2 * Math.PI; else if (d < -Math.PI) d += 2 * Math.PI;
+      var deg = Math.abs(d) * 180 / Math.PI;
+      if (gap > 15) merged++;                                // our timer was late: two frames may be merged
+      else steps.push({ deg: deg, since: t - lastChangeT });
+      if (t - lastChangeT > 40) stalls++;
+      lastChangeT = t; lastV = v;
+    }
+    lastT = t;
+    if (t - t0 > 6000) { clearInterval(iv); dgSmoothReport(steps, cap, merged, stalls, maxGap); }
+  }, 1);
+}
+function dgSmoothReport(steps, cap, merged, stalls, maxGap) {
+  var turning = steps.filter(function (s) { return s.deg > 0.5; });     // ignore straight-line frames
+  if (turning.length < 30) { dgShow('SMOOTHNESS: not enough turning frames (' + turning.length + '). Keep circling the whole 6 s.'); return; }
+  var degs = turning.map(function (s) { return s.deg; });
+  var med = dgPct(degs, 50), ideal = cap / 60;                          // deg per 16.7 ms frame
+  var ms = degs.map(function (d) { return d / cap * 1000; });           // game frame time implied by each step
+  var b1 = 0, b2 = 0, b3 = 0;
+  degs.forEach(function (d) { var r = d / ideal; if (r < 1.5) b1++; else if (r < 2.5) b2++; else b3++; });
+  var n = degs.length;
+  var L = ['SMOOTHNESS  (6 s, heading ' + dgHex(DG.headOff) + ', cap ' + dgFmt(cap) + ' deg/s -> ' + dgFmt(ideal) + ' deg per 60fps frame)',
+    'turning frames: ' + n + '  (skipped ' + merged + ' where this timer was late)',
+    'step deg: p10 ' + dgFmt(dgPct(degs, 10)) + '  p50 ' + dgFmt(med) + '  p90 ' + dgFmt(dgPct(degs, 90)) + '  max ' + dgFmt(dgPct(degs, 100)),
+    'game frame ms (from steps): p10 ' + dgFmt(dgPct(ms, 10)) + '  p50 ' + dgFmt(dgPct(ms, 50)) + '  p90 ' + dgFmt(dgPct(ms, 90)) + '  max ' + dgFmt(dgPct(ms, 100)),
+    'frames: normal ' + (100 * b1 / n).toFixed(1) + '%  double ' + (100 * b2 / n).toFixed(1) + '%  triple+ ' + (100 * b3 / n).toFixed(1) + '%',
+    'heading paused >40 ms: ' + stalls + ' times   menu timer max gap ' + dgFmt(maxGap) + ' ms'];
+  dgShow(L.join('\n'));
+}
+// =================== END DIAGNOSTICS ===================
+
+let baseAddress = null; // baseAddress の初期値
+let zoomLocker = null; // ズーム用のロック用変数
+let zoom2Locker = null; // ズーム用のロック用変数
+let speedLocker = null; // スピード用のロック用変数
+let freezeLocker = null; // フリーズ用のロック用変数
+let effectLocker = null; // フリーズ用のロック用変数
+let clockInterval = null; // 時刻表示用のインターバルを管理する変数
+
+// 時刻更新用の関数を定義
+function updateTime() {
+    const ttt = document.getElementById("ttt");
+    const content = document.getElementById('content');
+    const isVisible = content.style.display === 'block';
+
+    const nowTime = new Date();
+    const nowHour = nowTime.getHours().toString().padStart(2, '0');
+    const nowMin = nowTime.getMinutes().toString().padStart(2, '0');
+    const month = (nowTime.getMonth() + 1).toString().padStart(2, '0'); // 月（0ベースなので+1）
+    const day = nowTime.getDate().toString().padStart(2, '0'); 
+    const timeString = + month + "/" + day + "&nbsp" +nowHour + ":" + nowMin;
+
+    // ウィンドウの開閉状態に応じて表示を切り替え
+    ttt.innerHTML = isVisible ? "&nbsp;🎅&nbsp;Slither.io " + timeString : "&nbsp;🫎&nbsp;Slither.io " + timeString;
+}
+
+function openwindow() {
+    const content = document.getElementById('content');
+    const isVisible = content.style.display === 'block';
+
+    content.style.display = isVisible ? 'none' : 'block'; // コンテンツをトグル
+
+    // ウィンドウの開閉に応じてウィンドウサイズを変更
+    setWindowRect(500, 60, 300, isVisible ? 80 : 185);
+}
+
+// 初回ロード時にリアルタイムの時刻表示を開始
+if (clockInterval === null) {
+    clockInterval = setInterval(updateTime, 1000); // 1秒ごとに時刻を更新
+}
+
+function toggleSlider() {
+    const zoomCheckbox = document.getElementById('zoomCheckbox');
+    document.getElementById('zzom').disabled = !zoomCheckbox.checked;
+
+    // チェックが外れた場合、ロックをクリア
+    if (!zoomCheckbox.checked && zoomLocker) {
+        clearInterval(zoomLocker);
+        zoomLocker = null; // ズームロッカーをリセット
+    }
+}
+
+function toggleSlider2() {
+    const speedCheckbox = document.getElementById('speedCheckbox');
+    document.getElementById('spped').disabled = !speedCheckbox.checked;
+
+    // チェックが外れた場合、ロックをクリア
+    if (!speedCheckbox.checked && speedLocker) {
+        clearInterval(speedLocker);
+        speedLocker = null; // スピードロッカーをリセット
+        let baseAddressNum = parseInt(baseAddress, 16);
+    
+    // baseAddressから0x220を引き算してspeedを計算
+    let speed = baseAddressNum - 0x220;
+        W("0x" + (speed).toString(16), 1, 'F64');
+        
+    }
+}
+
+function startExecution() {
+    h5gg.clearResults();
+    h5gg.searchNumber('-1', 'F64', '0x000000000', '0x290000000');
+    h5gg.searchNearby('411', 'F64', '0x8');
+    let results = h5gg.getResults(1, 0);
+
+    if (results.length > 0) {
+        baseAddress = results[0].address; // baseAddressを取得
+    } else {
+        h5gg.clearResults();
+        h5gg.searchNumber('-1', 'F64', '0x000000000', '0x290000000')
+        h5gg.searchNearby('430', 'F64', '0x8');
+        results = h5gg.getResults(1, 0);
+        if (results.length > 0) {
+            baseAddress = results[0].address; // baseAddressを取得
+        }
+    }
+        if (baseAddress) { try { diagOnStart(baseAddress); } catch (e) {} }
+        if (baseAddress) {
+    const spaceAddress = (parseInt(baseAddress, 16) - 0x950).toString(16);
+
+    spaceLocker = setInterval(function() {
+        if (!ctrl.off) W('0x' + spaceAddress, ctrl.val, 'F64');
+    }, 1);
+}
+    const titlebar = document.getElementById('titlebar');
+    const content = document.getElementById('content');
+    titlebar.style.display = baseAddress ? 'block' : 'none';
+    content.style.display = baseAddress ? 'block' : 'none';
+    if (baseAddress) {
+        document.querySelector('.start-button').style.display = 'none';
+                document.querySelector('.farstcontent').style.display = 'none';
+        setWindowRect(500, 60, 300, 215);
+        setWindowDrag(0, 0, 300, 25);
+    }
+}
+
+    
+
+// フリーズ機能
+document.getElementById('backblack').addEventListener('change', function() {
+    if (this.checked) {
+        // チェックされたとき、baseAddressから0xf8を引いた値を0にする
+        if (baseAddress !== null) {
+            const black = (parseInt(baseAddress, 16) - 0x150).toString(16);
+            const black2 = (parseInt(baseAddress, 16) - 0x140).toString(16);
+
+            // フリーズを開始
+            freezeLocker = setInterval(function() {
+                W('0x' + black, 0, 'F64');
+                W('0x' + black2, 0, 'F64');
+            }, 1); // 250msごとに値を更新
+        }
+    } else {
+        // チェックが外れた場合、フリーズロックをクリア
+        if (freezeLocker !== null) {
+            clearInterval(freezeLocker);
+            freezeLocker = null; // フリーズロッカーをリセット
+        }
+    }
+});
+
+document.getElementById('NoEffect').addEventListener('change', function() {
+    if (this.checked) {
+        // チェックされたとき、baseAddressから0x140を引いた値を22にする
+        if (baseAddress !== null) {
+            const effect = (parseInt(baseAddress, 16) - 0x1c8).toString(16);
+            // フリーズを開始
+            effectLocker = setInterval(function() {
+                
+                W('0x' + effect, 1000000, 'F64');
+            }, 250); // 250msごとに値を更新
+        }
+    } else {
+        // チェックが外れた場合、フリーズロックをクリア
+        if (effectLocker !== null) {
+            clearInterval(effectLocker);
+            effectLocker = null; // フリーズロッカーをリセット
+            const effect = (parseInt(baseAddress, 16) - 0x1c8).toString(16);
+            W('0x' + effect, 5.39, 'F64');
+        }
+    }
+});
+
+document.getElementById('smallfood').addEventListener('change', function() {
+    if (this.checked) {
+        // チェックされたとき、baseAddressから0x140を引いた値を22にする
+        if (baseAddress !== null) {
+            const small = (parseInt(baseAddress, 16) - 0x250).toString(16);
+            // フリーズを開始
+            smallLocker = setInterval(function() {
+                
+                W('0x' + small, 0.40, 'F64');
+            }, 1); // 250msごとに値を更新
+        }
+    } else {
+        // チェックが外れた場合、フリーズロックをクリア
+        if (smallLocker !== null) {
+            clearInterval(smallLocker);
+            smallLocker = null; // フリーズロッカーをリセット
+            const small = (parseInt(baseAddress, 16) - 0x250).toString(16);
+            W('0x' + small, 2.74, 'F64');
+        }
+    }
+});
+
+document.getElementById('bigname').addEventListener('change', function() {
+    if (this.checked) {
+        // チェックされたとき、baseAddressから0x140を引いた値を22にする
+        if (baseAddress !== null) {
+            const name = (parseInt(baseAddress, 16) - 0x238).toString(16);
+            // フリーズを開始
+            nameLocker = setInterval(function() {
+                
+                W('0x' + name, -0.10, 'F64');
+            }, 10); // 250msごとに値を更新
+        }
+    } else {
+        // チェックが外れた場合、フリーズロックをクリア
+        if (nameLocker !== null) {
+            clearInterval(nameLocker);
+            nameLocker = null; // フリーズロッカーをリセット
+            const name = (parseInt(baseAddress, 16) - 0x238).toString(16);
+            W('0x' + name, 0.73, 'F64');
+        }
+    }
+});
+
+document.getElementById('zoomwhere').addEventListener('change', function() {
+    const zzom2 = document.getElementById('zzomsec');
+    // チェックボックスの状態に応じて、zzom2の表示・非表示を切り替える
+    zzom2.style.display = this.checked ? 'inline-block' : 'none';
+});
+
+function zoome2() {
+        let slidersec = parseFloat(document.getElementById("zzomsec").value);
+    
+    // baseAddressが文字列である場合を考慮し、16進数の数値に変換する
+    let baseAddressNum = parseInt(baseAddress, 16);
+    
+    // baseAddressから0x168を引き算してzoomを計算
+    let zoom = baseAddressNum - 0x260;
+
+    // zoomがNaNでないかをチェック
+    if (!isNaN(zoom)) {
+        // ズームインターバルが既に存在する場合、クリアして再設定する
+        if (zoom2Locker !== null) {
+            clearInterval(zoom2Locker);
+        }
+
+        // スライダーの値をメモリアドレスに定期的に書き込む
+        zoom2Locker = setInterval(function() {
+            W("0x" + (zoom).toString(16), slidersec, 'F64');
+        }, 1);  // 1msごとに値を更新
+    }
+}
+
+// ズーム機能
+function zoome() {
+    let slider = parseFloat(document.getElementById("zzom").value);
+    
+    // baseAddressが文字列である場合を考慮し、16進数の数値に変換する
+    let baseAddressNum = parseInt(baseAddress, 16);
+    
+    // baseAddressから0x168を引き算してzoomを計算
+    let zoom = baseAddressNum - 0x260;
+
+    // zoomがNaNでないかをチェック
+    if (!isNaN(zoom)) {
+        // ズームインターバルが既に存在する場合、クリアして再設定する
+        if (zoomLocker !== null) {
+            clearInterval(zoomLocker);
+        }
+
+        // スライダーの値をメモリアドレスに定期的に書き込む
+        zoomLocker = setInterval(function() {
+            W("0x" + (zoom).toString(16), slider, 'F64');
+        }, 1);  // 1msごとに値を更新
+    }
+}
+
+// スピード機能
+function speede() {
+    let slider2 = parseFloat(document.getElementById("spped").value);
+    
+    // baseAddressが文字列である場合を考慮し、16進数の数値に変換する
+    let baseAddressNum = parseInt(baseAddress, 16);
+    
+    // baseAddressから0x220を引き算してspeedを計算
+    let speed = baseAddressNum - 0x220;
+
+    // speedがNaNでないかをチェック
+    if (!isNaN(speed)) {
+        // スピードインターバルが既に存在する場合、クリアして再設定する
+        if (speedLocker !== null) {
+            clearInterval(speedLocker);
+        }
+
+        // スライダーの値をメモリアドレスに定期的に書き込む
+        speedLocker = setInterval(function() {
+            W("0x" + (speed).toString(16), slider2, 'F64');
+        }, 1);  // 1msごとに値を更新
+    }
+}
+function showClock() {
+  let realtimeElement = document.getElementById("realtime");
+  if (realtimeElement) { // 要素が存在するかをチェック
+    let nowTime = new Date();
+    let nowHour = nowTime.getHours().toString().padStart(2, '0');
+    let nowMin  = nowTime.getMinutes().toString().padStart(2, '0');
+    let nowSec  = nowTime.getSeconds().toString().padStart(2, '0');
+    let msg = nowHour + ":" + nowMin + ":" + nowSec;
+    realtimeElement.innerHTML = msg;
+  }
+}
+setInterval(showClock, 1000);
+
+function hide() {
+    const hideicon = document.getElementById('icon');
+
+    // チェックボックスがチェックされているかを確認
+    if (hideicon.checked) {
+        setButtonImage("https://raw.githubusercontent.com/TABEMARU-HAGE/HTML-JavaScript-CSS/refs/heads/main/IMG_0244.png");
+    } else {
+        setButtonImage("https://raw.githubusercontent.com/TABEMARU-HAGE/HTML-JavaScript-CSS/refs/heads/main/3_20240828162441.png");
+    }
+}
+
+// ---- Control tuning (added by xentd) ----
+var ctrl = { val: 8, off: false };
+try {
+    var saved = JSON.parse(localStorage.getItem('ctrlTuning') || 'null');
+    if (saved && typeof saved.val === 'number') { ctrl.val = saved.val; ctrl.off = !!saved.off; }
+} catch (e) {}
+function ctrlSave() { try { localStorage.setItem('ctrlTuning', JSON.stringify(ctrl)); } catch (e) {} }
+function ctrlRender() {
+    document.getElementById('ctrlVal').value = ctrl.val;
+    document.getElementById('ctrlShow').textContent = ctrl.off ? 'off' : ctrl.val;
+    document.getElementById('ctrlOff').checked = ctrl.off;
+}
+document.getElementById('ctrlVal').addEventListener('input', function () {
+    ctrl.val = parseFloat(this.value); ctrlRender(); ctrlSave();
+});
+document.getElementById('ctrlOff').addEventListener('change', function () {
+    ctrl.off = this.checked; ctrlRender(); ctrlSave();
+});
+ctrlRender();
+(function () {
+    var n = 0;
+    setInterval(function () { n++; }, 1);
+    setInterval(function () { document.getElementById('ctrlRate').textContent = n; n = 0; }, 1000);
+})();
+
+// 初期設定
+setWindowRect(500, 60, 300, 215);
+setWindowDrag(0, 0, 300, 25);
+
+// イベントリスナーの設定
+document.getElementById('zzomsec').addEventListener('input', zoome2);
+document.getElementById('zzom').addEventListener('input', zoome);
+document.getElementById('zoomCheckbox').addEventListener('change', toggleSlider);
+ </script>
+</body>
+
+</html>

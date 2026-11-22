@@ -17,7 +17,7 @@ const fake = `
   setInterval(() => put(-0x260, 0.73), 30); setInterval(() => put(-0x908, head), 66);            // game pulls zoom back
   const key = a => parseInt(a, 16);
   window.h5gg = { clearResults(){}, searchNumber(){}, searchNearby(){}, getResults(){ return [{address: '0x' + BASE.toString(16)}]; },
-    getValue(a){ const v = mem.get(key(a)); return v === undefined ? 0 : v; }, setValue(a, v){ mem.set(key(a), Number(v)); return true; } };
+    getValue(a){ const e = performance.now() + 0.15; while (performance.now() < e) {} const v = mem.get(key(a)); return v === undefined ? 0 : v; }, setValue(a, v){ mem.set(key(a), Number(v)); return true; } };
   window.setWindowRect = function(){}; window.setWindowDrag = function(){}; window.setButtonImage = function(){};`;
 (async () => {
   const b = await chromium.launch(); const ctx = await b.newContext({ viewport: { width: 520, height: 360 } });
@@ -28,8 +28,8 @@ const fake = `
   await p.evaluate(() => { startExecution(); const z = document.getElementById('zoomwhere'); z.checked = true; z.dispatchEvent(new Event('change'));
     const s = document.getElementById('zzomsec'); s.value = 0.35; s.dispatchEvent(new Event('input')); });
   await p.waitForTimeout(1500);
-  await p.evaluate(() => fingerHunt()); await p.evaluate(() => { let v = 0.35; setInterval(() => { v = v > 0.5 ? 0.3 : v + 0.05; const s = document.getElementById('zzomsec'); s.value = v; s.dispatchEvent(new Event('input')); }, 1000); });
-  await p.waitForTimeout(11500);
+  const T0 = Date.now(); await p.evaluate(() => fingerHunt()); const seen = new Set(); for (let i = 0; i < 60; i++) { await p.waitForTimeout(500); const pr = await p.evaluate(() => (document.getElementById('utPrompt')||{}).textContent || ''); if (pr) seen.add(pr.replace(/[0-9]+ s[)]/,'N s)').replace(/[0-9]+%/,'N%')); if (await p.evaluate(() => document.getElementById('utBox').style.display === 'block')) break; } console.log('progress lines seen:', [...seen].slice(0,8).join(' | ')); console.log('finished after', ((Date.now()-T0)/1000).toFixed(1), 's'); await p.evaluate(() => { let v = 0.35; setInterval(() => { v = v > 0.5 ? 0.3 : v + 0.05; const s = document.getElementById('zzomsec'); s.value = v; s.dispatchEvent(new Event('input')); }, 1000); });
+  
   console.log(await p.evaluate(() => document.getElementById('utText').textContent));
   await p.screenshot({ path: 'ult/report.png' });
   console.log('errors:', errs.length ? errs : 'none');

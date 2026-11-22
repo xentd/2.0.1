@@ -673,17 +673,17 @@ function utReport(cands, series, cheat, zs) {
     if (pair) head = pair.f;
     else circ.forEach(function (c) { if (!head || Math.abs(A[c].total) > Math.abs(A[head].total)) head = c; });
   }
-  if (head && (!pair || pair.f !== head)) {   // finger = the other value the heading lines up with best
-    pair = null;
-    Object.keys(A).forEach(function (l) {
-      if (l === head || A[l].span < 1.5 || A[l].upd < 10) return;
-      var r = lagFit(head, l); if (!r) return;
-      if (!pair || r.md < pair.md) pair = { f: head, l: l, md: r.md, lag: r.lag };
-    });
-  }
+  // finger = -0x940 (found on both phones); never the server's copy of the heading (-0x908)
+  pair = null;
+  if (head && A['-2368']) { var rf = lagFit(head, '-2368'); if (rf) pair = { f: head, l: '-2368', md: rf.md, lag: rf.lag }; }
+  if (head && !pair) Object.keys(A).forEach(function (l) {
+    if (l === head || l === '-2312' || A[l].span < 1.5 || A[l].upd < 10) return;
+    var r = lagFit(head, l); if (!r || r.lag < 8) return;
+    if (!pair || r.md < pair.md) pair = { f: head, l: l, md: r.md, lag: r.lag };
+  });
   var L = [];
   var ua = navigator.userAgent, iosv = ((ua.match(/OS ([\d_]+)/) || [])[1] || '?').replace(/_/g, '.');
-  L.push('ULTIMATE TEST v4   iOS(UA) ' + iosv + '   rhythm ' + (window.__rhythmOn ? 'ON' : 'OFF') + '   ' + new Date().toLocaleString());
+  L.push('ULTIMATE TEST v5   iOS(UA) ' + iosv + '   rhythm ' + (window.__rhythmOn ? 'ON' : 'OFF') + '   ' + new Date().toLocaleString());
   L.push('A TIMERS  iOS 1ms timer ' + UT.natRate + '/s (gap p50 ' + utF(utPct(UT.nat, 50)) + ' p95 ' + utF(utPct(UT.nat, 95)) + ' ms)   cheats ' + (window.__rhythmOn ? UT.pumpRate + '/s (p50 ' + utF(utPct(UT.pump, 50)) + ' p95 ' + utF(utPct(UT.pump, 95)) + ')' : UT.natRate + '/s (on the iOS timer)') + '   screen ' + UT.rafRate + 'fps (p95 ' + utF(utPct(UT.raf, 95)) + ' ms)');
   if (!head) {
     L.push('B-D  heading not found - circle the whole time during step 2/3 and run again');
@@ -698,14 +698,12 @@ function utReport(cands, series, cheat, zs) {
     L.push('B TURN    heading ' + utHex(+head) + '  avg ' + utF(h.avg) + ' deg/s  (game cap ' + utF(capDeg) + ')  p90 ' + utF(utPct(r100, 90)) + '  turned ' + utF(h.total, 0) + ' deg');
     L.push('C PACING  game frames ' + utF(h.upd) + '/s  gap ms p50 ' + utF(utPct(h.gaps, 50)) + ' p90 ' + utF(utPct(h.gaps, 90)) + ' max ' + utF(utPct(h.gaps, 100)) + '  long frames ' + utF(100 * longGaps / Math.max(1, h.gaps.length)) + '%   steps: normal ' + utF(100 * normal / n) + '% double ' + utF(100 * dbl / n) + '% triple+ ' + utF(100 * tri / n) + '%');
     var best = (pair && pair.f === head) ? { c: pair.l, md: pair.md, lag: pair.lag } : null;
-    if (best && best.md < 45) {
-      var w = A[best.c];
-      L.push('D INPUT   wanted angle ' + utHex(+best.c) + '  updates ' + utF(w.upd) + '/s  gap p50 ' + utF(utPct(w.gaps, 50)) + ' p95 ' + utF(utPct(w.gaps, 95)) + ' max ' + utF(utPct(w.gaps, 100)) + ' ms  snake follows your finger after ' + best.lag + ' ms (fit ' + utF(best.md) + ' deg)');
-    } else {
-      if (best) { var wf = A[best.c];
-        L.push('D INPUT   finger ' + utHex(+best.c) + '?  updates ' + utF(wf.upd) + '/s  gap p50 ' + utF(utPct(wf.gaps, 50)) + ' p95 ' + utF(utPct(wf.gaps, 95)) + ' max ' + utF(utPct(wf.gaps, 100)) + ' ms  (delay not measurable: you circled faster than the snake turns, off by ' + utF(best.md) + ' deg)'); }
-      else L.push('D INPUT   finger not found - circle steadily the whole time');
-    }
+    if (best) {
+      var wf = A[best.c];
+      L.push('D INPUT   finger ' + utHex(+best.c) + '  touches reach the game ' + utF(wf.upd) + '/s  gap p50 ' + utF(utPct(wf.gaps, 50)) + ' p95 ' + utF(utPct(wf.gaps, 95)) + ' max ' + utF(utPct(wf.gaps, 100)) + ' ms' +
+        (best.md < 45 && best.lag >= 8 ? '  snake follows after ' + best.lag + ' ms (fit ' + utF(best.md) + ' deg)' : '  (delay: circle slower to measure)'));
+    } else L.push('D INPUT   finger not found - circle steadily the whole time');
+    if (A['-2312']) L.push('  server heading -908 updates ' + utF(A['-2312'].upd) + '/s (gap p50 ' + utF(utPct(A['-2312'].gaps, 50)) + ' ms)');
   }
   // zoom + cheats: held % = samples equal to the most common value; flips/s = value changes per second
   var secsAll = 12;

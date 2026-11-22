@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Agu+Display&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Agu Display', sans-serif;
+            color: #FFFFFF;
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-user-drag: none;
+        }
+
+        .titlebar {
+            background-color: #961D32Fb;
+            width: 300px;
+            height: 25px;
+            display: none;
+        }
+
+        .content {
+            background-color: #1F7035Fb;
+            width: 295px;
+            height: 160px;
+            display: none;
+            padding-left: 5px;
+        }
+
+        .intro {
+            color: #961D32;
+        }
+
+        hr {
+            margin: 0;
+            height: 0px;
+            border: solid 0.9px #961D32;
+        }
+
+        .checkboxItem {
+            display: inline-flex;
+            align-items: center;
+            column-gap: 4px;
+            line-height: 1;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        .checkboxItem:not(:last-of-type) {
+            margin-right: 1px;
+        }
+
+        .checkbox {
+            appearance: none;
+            position: relative;
+            width: 20px;
+            height: 20px;
+            border: 1px solid #676770;
+            cursor: pointer;
+            background-color: #961D32d9;
+            border-radius: 1px;
+        }
+
+        .checkbox:checked {
+            border: 1px solid #676770;
+            background-color: #961D32d9;
+        }
+
+        .checkbox:checked::after {
+            content: "";
+            position: absolute;
+            top: 3px;
+            left: 2px;
+            width: 12px;
+            height: 6px;
+            border-bottom: 2px solid #1F7035;
+            border-left: 2px solid #1F7035;
+            transform: rotate(-45deg);
+        }
+
+        .inputRange {
+            appearance: none;
+            width: 200px;
+            height: 18px;
+            border: 1px solid #676770;
+            border-radius: 1px;
+            background: #961D32d9;
+            cursor: pointer;
+        }
+
+        .inputRange::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 20px;
+            border: 1px solid #676770;
+            border-radius: 1px;
+            background: #1F7035;
+            box-shadow: none;
+        }
+
+        /* スクロールを可能にし、スクロールバーを非表示にする */
+        .scrollable {
+            overflow-y: scroll;
+            scrollbar-width: none;
+        }
+
+        .scrollable::-webkit-scrollbar {
+            display: none;
+        }
+
+        .start-button {
+            background-color: #961D32;
+            color: white;
+            padding: 5px 10px;
+            border: none;
+            cursor: pointer;
+            font-size: 15px;
+            margin: 10px 0;
+            border: solid 1px #676770;
+            height: 40px;
+            width: 200px;
+        }
+
+        .start-button:hover {
+            background-color: #961D32;
+        }
+        .farstcontent {
+            background-color: #1F7035Fb;
+            width: 295px;
+            height: 160px;
+            display: block; /* 初期状態は非表示 */
+            padding-left: 5px;
+        }
+    </style>
+</head>
+
+<body>
+<div class="farstcontent">
+    <button class="start-button" onclick="startExecution()">click!!</button>
+<p>
+Once you play AI or online, click the button in play or on the Home Screen
+</p>
+</div>
+    <div class="titlebar" id="titlebar">
+        <div id="ttt" onclick="openwindow()">&nbsp;🎅 Slither.io <span id="realtime"></span></div>
+    </div>
+    <input type="range" name="range" value="0.70" min="0.01" max="1.0" step="0.003" id="zzomsec" class="inputRange" style="display: none; margin-top: 17px; width: 215px;"/>
+
+    <div id="content" class="content scrollable">
+        <div class="intro">ModMenu by Tabemaru</div>
+        <div style="margin:4px 0 6px;">
+          <button onclick="ultimateTest()" style="font-size:13px;padding:5px 8px;background:#961D32;color:#fff;border:1px solid #fff4;">ULTIMATE TEST</button>
+          <label style="font-size:12px;margin-left:6px;"><input type="checkbox" id="rhythmBox" checked onchange="window.__rhythmOn=this.checked"> iOS 18 rhythm</label>
+          <div id="utLive" style="font-size:11px;opacity:.85;margin-top:3px;">live: …</div>
+        </div>
+        <hr>
+        <hr>
+                <label class="checkboxItem">
+    <input type="checkbox" name="checkbox" id="icon" value="選択肢3" class="checkbox" onchange="hide()" />
+    Hide icon
+</label>
+        <label class="checkboxItem">
+            <input type="checkbox" name="checkbox" id="backblack" value="Background-black" class="checkbox" />
+            Background black
+        </label>
+        <label class="checkboxItem">
+            <input type="checkbox" name="checkbox" id="NoEffect" value="Noeffect" class="checkbox" />
+            No boost effect(online only)
+        </label>
+        <label class="checkboxItem">
+            <input type="checkbox" name="checkbox" id="smallfood" value="選択肢3" class="checkbox" />
+            Small food
+        </label>
+                <label class="checkboxItem">
+            <input type="checkbox" name="checkbox" id="bigname" value="選択肢4" class="checkbox" />
+            Big name
+        </label>
+        <hr>
+    <a style="font-size: 13px">Display the document under the titlebar</a>
+         <label class="checkboxItem">
+            <input type="checkbox" name="checkbox" id="zoomwhere" value="選択肢4" class="checkbox" />
+            Zoom
+        </label>
+   
+        <hr>
+        <label class="checkboxItem">
+            <input type="checkbox" id="zoomCheckbox" class="checkbox" onchange="toggleSlider()" />
+            <span style="line-height: 20px;">Zoom</span>
+        </label>
+        <input type="range" name="range" value="0.70" min="0.01" max="1.0" step="0.01" id="zzom" class="inputRange" disabled />
+      
+    </div>
+
+    <script>
+// iOS 18 timer rhythm (measured on iOS 18.5: ~204/s, steady 5 ms). iOS 26 runs these 1 ms
+// timers ~123/s at ~8 ms; this runs every 1 ms setInterval on an even 4.9 ms beat instead.
+(function () {
+  var nativeSet = window.setInterval, nativeClear = window.clearInterval;
+  window.__nativeSet = nativeSet;
+  window.__rhythmOn = true;
+  var tasks = {}, nextId = 1e6, running = false, STEP_MS = 4.9, last = 0;
+  var now = (window.performance && performance.now) ? function () { return performance.now(); } : Date.now;
+  var ch = new MessageChannel();
+  ch.port1.onmessage = function () {
+    var any = false; for (var k in tasks) { any = true; break; }
+    if (!any) { running = false; return; }
+    var t = now();
+    if (t - last >= STEP_MS) {
+      last = (t - last > STEP_MS * 3) ? t : last + STEP_MS;
+      for (var j in tasks) { try { tasks[j](); } catch (e) {} }
+    }
+    ch.port2.postMessage(0);
+  };
+  window.setInterval = function (fn, ms) {
+    if (window.__rhythmOn && typeof fn === 'function' && (ms === undefined || ms <= 1)) {
+      var id = nextId++; tasks[id] = fn;
+      if (!running) { running = true; last = now(); ch.port2.postMessage(0); }
+      return id;
+    }
+    return nativeSet.apply(window, arguments);
+  };
+  window.clearInterval = function (id) {
+    if (id in tasks) { delete tasks[id]; return; }
+    return nativeClear.apply(window, arguments);
+  };
+})();
+</script>
+    <script>
+let baseAddress = null; // baseAddress の初期値
+let zoomLocker = null; // ズーム用のロック用変数
+let zoom2Locker = null; // ズーム用のロック用変数
+let speedLocker = null; // スピード用のロック用変数
+let freezeLocker = null; // フリーズ用のロック用変数
+let effectLocker = null; // フリーズ用のロック用変数
+let clockInterval = null; // 時刻表示用のインターバルを管理する変数
+
+// 時刻更新用の関数を定義
+function updateTime() {
+    const ttt = document.getElementById("ttt");
+    const content = document.getElementById('content');
+    const isVisible = content.style.display === 'block';
+
+    const nowTime = new Date();
+    const nowHour = nowTime.getHours().toString().padStart(2, '0');
+    const nowMin = nowTime.getMinutes().toString().padStart(2, '0');
+    const month = (nowTime.getMonth() + 1).toString().padStart(2, '0'); // 月（0ベースなので+1）
+    const day = nowTime.getDate().toString().padStart(2, '0'); 
+    const timeString = + month + "/" + day + "&nbsp" +nowHour + ":" + nowMin;
+
+    // ウィンドウの開閉状態に応じて表示を切り替え
+    ttt.innerHTML = isVisible ? "&nbsp;🎅&nbsp;Slither.io " + timeString : "&nbsp;🫎&nbsp;Slither.io " + timeString;
+}
+
+function openwindow() {
+    const content = document.getElementById('content');
+    const isVisible = content.style.display === 'block';
+
+    content.style.display = isVisible ? 'none' : 'block'; // コンテンツをトグル
+
+    // ウィンドウの開閉に応じてウィンドウサイズを変更
+    setWindowRect(500, 60, 300, isVisible ? 80 : 185);
+}
+
+// 初回ロード時にリアルタイムの時刻表示を開始
+if (clockInterval === null) {
+    clockInterval = setInterval(updateTime, 1); // 1秒ごとに時刻を更新
+}
+
+function toggleSlider() {
+    const zoomCheckbox = document.getElementById('zoomCheckbox');
+    document.getElementById('zzom').disabled = !zoomCheckbox.checked;
+
+    // チェックが外れた場合、ロックをクリア
+    if (!zoomCheckbox.checked && zoomLocker) {
+        clearInterval(zoomLocker);
+        zoomLocker = null; // ズームロッカーをリセット
+    }
+}
+
+function toggleSlider2() {
+    const speedCheckbox = document.getElementById('speedCheckbox');
+    document.getElementById('spped').disabled = !speedCheckbox.checked;
+
+    // チェックが外れた場合、ロックをクリア
+    if (!speedCheckbox.checked && speedLocker) {
+        clearInterval(speedLocker);
+        speedLocker = null; // スピードロッカーをリセット
+        let baseAddressNum = parseInt(baseAddress, 16);
+    
+    // baseAddressから0x220を引き算してspeedを計算
+    let speed = baseAddressNum - 0x220;
+        h5gg.setValue("0x" + (speed).toString(16), 1, 'F64');
+        
+    }
+}
+
+function startExecution() {
+    h5gg.clearResults();
+    h5gg.searchNumber('-1', 'F64', '0x000000000', '0x290000000');
+    h5gg.searchNearby('411', 'F64', '0x8');
+    let results = h5gg.getResults(1, 0);
+
+    if (results.length > 0) {
+        baseAddress = results[0].address; // baseAddressを取得
+    } else {
+        h5gg.clearResults();
+        h5gg.searchNumber('-1', 'F64', '0x000000000', '0x290000000')
+        h5gg.searchNearby('430', 'F64', '0x8');
+        results = h5gg.getResults(1, 0);
+        if (results.length > 0) {
+            baseAddress = results[0].address; // baseAddressを取得
+        }
+    }
+        if (baseAddress) {
+    const spaceAddress = (parseInt(baseAddress, 16) - 0x950).toString(16);
+
+    spaceLocker = setInterval(function() {
+        h5gg.setValue('0x' + spaceAddress, 8, 'F64');
+    }, 1);
+}
+    const titlebar = document.getElementById('titlebar');
+    const content = document.getElementById('content');
+    titlebar.style.display = baseAddress ? 'block' : 'none';
+    content.style.display = baseAddress ? 'block' : 'none';
+    if (baseAddress) {
+        document.querySelector('.start-button').style.display = 'none';
+                document.querySelector('.farstcontent').style.display = 'none';
+        setWindowRect(500, 60, 300, 215);
+        setWindowDrag(0, 0, 300, 25);
+    }
+}
+
+    
+
+// フリーズ機能
+document.getElementById('backblack').addEventListener('change', function() {
+    if (this.checked) {
+        // チェックされたとき、baseAddressから0xf8を引いた値を0にする
+        if (baseAddress !== null) {
+            const black = (parseInt(baseAddress, 16) - 0x150).toString(16);
+            const black2 = (parseInt(baseAddress, 16) - 0x140).toString(16);
+
+            // フリーズを開始
+            freezeLocker = setInterval(function() {
+                h5gg.setValue('0x' + black, 0, 'F64');
+                h5gg.setValue('0x' + black2, 0, 'F64');
+            }, 1); // 250msごとに値を更新
+        }
+    } else {
+        // チェックが外れた場合、フリーズロックをクリア
+        if (freezeLocker !== null) {
+            clearInterval(freezeLocker);
+            freezeLocker = null; // フリーズロッカーをリセット
+        }
+    }
+});
+
+document.getElementById('NoEffect').addEventListener('change', function() {
+    if (this.checked) {
+        // チェックされたとき、baseAddressから0x140を引いた値を22にする
+        if (baseAddress !== null) {
+            const effect = (parseInt(baseAddress, 16) - 0x1c8).toString(16);
+            // フリーズを開始
+            effectLocker = setInterval(function() {
+                
+                h5gg.setValue('0x' + effect, 1000000, 'F64');
+            }, 250); // 250msごとに値を更新
+        }
+    } else {
+        // チェックが外れた場合、フリーズロックをクリア
+        if (effectLocker !== null) {
+            clearInterval(effectLocker);
+            effectLocker = null; // フリーズロッカーをリセット
+            const effect = (parseInt(baseAddress, 16) - 0x1c8).toString(16);
+            h5gg.setValue('0x' + effect, 5.39, 'F64');
+        }
+    }
+});
+
+document.getElementById('smallfood').addEventListener('change', function() {
+    if (this.checked) {
+        // チェックされたとき、baseAddressから0x140を引いた値を22にする
+        if (baseAddress !== null) {
+            const small = (parseInt(baseAddress, 16) - 0x250).toString(16);
+            // フリーズを開始
+            smallLocker = setInterval(function() {
+                
+                h5gg.setValue('0x' + small, 0.40, 'F64');
+            }, 1); // 250msごとに値を更新
+        }
+    } else {
+        // チェックが外れた場合、フリーズロックをクリア
+        if (smallLocker !== null) {
+            clearInterval(smallLocker);
+            smallLocker = null; // フリーズロッカーをリセット
+            const small = (parseInt(baseAddress, 16) - 0x250).toString(16);
+            h5gg.setValue('0x' + small, 2.74, 'F64');
+        }
+    }
+});
+
+document.getElementById('bigname').addEventListener('change', function() {
+    if (this.checked) {
+        // チェックされたとき、baseAddressから0x140を引いた値を22にする
+        if (baseAddress !== null) {
+            const name = (parseInt(baseAddress, 16) - 0x238).toString(16);
+            // フリーズを開始
+            nameLocker = setInterval(function() {
+                
+                h5gg.setValue('0x' + name, -0.10, 'F64');
+            }, 10); // 250msごとに値を更新
+        }
+    } else {
+        // チェックが外れた場合、フリーズロックをクリア
+        if (nameLocker !== null) {
+            clearInterval(nameLocker);
+            nameLocker = null; // フリーズロッカーをリセット
+            const name = (parseInt(baseAddress, 16) - 0x238).toString(16);
+            h5gg.setValue('0x' + name, 0.73, 'F64');
+        }
+    }
+});
+
+document.getElementById('zoomwhere').addEventListener('change', function() {
+    const zzom2 = document.getElementById('zzomsec');
+    // チェックボックスの状態に応じて、zzom2の表示・非表示を切り替える
+    zzom2.style.display = this.checked ? 'inline-block' : 'none';
+});
+
+function zoome2() {
+        let slidersec = parseFloat(document.getElementById("zzomsec").value);
+    
+    // baseAddressが文字列である場合を考慮し、16進数の数値に変換する
+    let baseAddressNum = parseInt(baseAddress, 16);
+    
+    // baseAddressから0x168を引き算してzoomを計算
+    let zoom = baseAddressNum - 0x260;
+
+    // zoomがNaNでないかをチェック
+    if (!isNaN(zoom)) {
+        // ズームインターバルが既に存在する場合、クリアして再設定する
+        if (zoom2Locker !== null) {
+            clearInterval(zoom2Locker);
+        }
+
+        // スライダーの値をメモリアドレスに定期的に書き込む
+        zoom2Locker = setInterval(function() {
+            h5gg.setValue("0x" + (zoom).toString(16), slidersec, 'F64');
+        }, 1);  // 1msごとに値を更新
+    }
+}
+
+// ズーム機能
+function zoome() {
+    let slider = parseFloat(document.getElementById("zzom").value);
+    
+    // baseAddressが文字列である場合を考慮し、16進数の数値に変換する
+    let baseAddressNum = parseInt(baseAddress, 16);
+    
+    // baseAddressから0x168を引き算してzoomを計算
+    let zoom = baseAddressNum - 0x260;
+
+    // zoomがNaNでないかをチェック
+    if (!isNaN(zoom)) {
+        // ズームインターバルが既に存在する場合、クリアして再設定する
+        if (zoomLocker !== null) {
+            clearInterval(zoomLocker);
+        }
+
+        // スライダーの値をメモリアドレスに定期的に書き込む
+        zoomLocker = setInterval(function() {
+            h5gg.setValue("0x" + (zoom).toString(16), slider, 'F64');
+        }, 1);  // 1msごとに値を更新
+    }
+}
+
+// スピード機能
+function speede() {
+    let slider2 = parseFloat(document.getElementById("spped").value);
+    
+    // baseAddressが文字列である場合を考慮し、16進数の数値に変換する
+    let baseAddressNum = parseInt(baseAddress, 16);
+    
+    // baseAddressから0x220を引き算してspeedを計算
+    let speed = baseAddressNum - 0x220;
+
+    // speedがNaNでないかをチェック
+    if (!isNaN(speed)) {
+        // スピードインターバルが既に存在する場合、クリアして再設定する
+        if (speedLocker !== null) {
+            clearInterval(speedLocker);
+        }
+
+        // スライダーの値をメモリアドレスに定期的に書き込む
+        speedLocker = setInterval(function() {
+            h5gg.setValue("0x" + (speed).toString(16), slider2, 'F64');
+        }, 1);  // 1msごとに値を更新
+    }
+}
+function showClock() {
+  let realtimeElement = document.getElementById("realtime");
+  if (realtimeElement) { // 要素が存在するかをチェック
+    let nowTime = new Date();
+    let nowHour = nowTime.getHours().toString().padStart(2, '0');
+    let nowMin  = nowTime.getMinutes().toString().padStart(2, '0');
+    let nowSec  = nowTime.getSeconds().toString().padStart(2, '0');
+    let msg = nowHour + ":" + nowMin + ":" + nowSec;
+    realtimeElement.innerHTML = msg;
+  }
+}
+setInterval(showClock, 1000);
+
+function hide() {
+    const hideicon = document.getElementById('icon');
+
+    // チェックボックスがチェックされているかを確認
+    if (hideicon.checked) {
+        setButtonImage("https://raw.githubusercontent.com/TABEMARU-HAGE/HTML-JavaScript-CSS/refs/heads/main/IMG_0244.png");
+    } else {
+        setButtonImage("https://raw.githubusercontent.com/TABEMARU-HAGE/HTML-JavaScript-CSS/refs/heads/main/3_20240828162441.png");
+    }
+}
+
+// 初期設定
+setWindowRect(500, 60, 300, 215);
+setWindowDrag(0, 0, 300, 25);
+
+// イベントリスナーの設定
+document.getElementById('zzomsec').addEventListener('input', zoome2);
+document.getElementById('zzom').addEventListener('input', zoome);
+document.getElementById('zoomCheckbox').addEventListener('change', toggleSlider);
+ </script>
+<div id="utBox" style="display:none; position:fixed; left:0; top:0; width:520px; height:360px; background:#000000ee; z-index:99; overflow:auto;">
+  <button onclick="utClose()" style="position:sticky; top:0; float:right; font-size:12px; padding:4px 6px; background:#961D32; color:#fff; border:1px solid #fff4;">Close</button>
+  <pre id="utText" style="margin:4px; font: 10px/1.4 Menlo, monospace; white-space: pre-wrap; word-break: break-all; color:#fff;"></pre>
+</div>
+<script>
+// ===================== ULTIMATE TEST (xentd) =====================
+// One guided run, same on every phone. Reads game memory only; changes nothing in the game.
+//  A. timers   - native 1 ms setInterval rate/jitter, cheat pump rate/jitter, screen fps/jitter
+//  B. turning  - finds the heading in memory, measures turn speed vs the game's own cap
+//  C. pacing   - each heading step = cap x that frame's duration -> game frame times
+//  D. input    - finds the game's wanted angle (where your finger points): update rate, gaps,
+//                and how long the heading takes to follow it (lag, by cross-correlation)
+//  E. zoom     - how often the zoom value holds, how often the game snaps it, and to what
+//  F. cheats   - how often each written value holds
+var UT = { base: null, nat: [], natN: 0, natRate: 0, pump: [], pumpN: 0, pumpRate: 0, raf: [], rafN: 0, rafRate: 0, running: false };
+function utNow() { return (window.performance && performance.now) ? performance.now() : Date.now(); }
+function utGet(off) { try { return Number(h5gg.getValue('0x' + (parseInt(UT.base, 16) + off).toString(16), 'F64')); } catch (e) { return NaN; } }
+function utPct(a, p) { if (!a.length) return NaN; var s = a.slice().sort(function (x, y) { return x - y; }); return s[Math.min(s.length - 1, Math.floor(p / 100 * s.length))]; }
+function utF(v, d) { return (v === v && v !== undefined) ? (+v.toFixed(d === undefined ? 1 : d)).toString() : '-'; }
+function utHex(o) { return (o < 0 ? '-' : '+') + Math.abs(o).toString(16); }
+function utAngDiff(a, b) { var d = a - b; while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI; return d; }
+// background probes: native 1 ms timer (bypasses the rhythm pump), the cheat pump, the screen
+(function () {
+  var NS = window.__nativeSet || window.setInterval, ln = utNow(), lp = utNow(), lr = utNow();
+  NS(function () { var t = utNow(); UT.nat.push(t - ln); ln = t; UT.natN++; if (UT.nat.length > 2000) UT.nat.splice(0, 1000); }, 1);
+  window.setInterval(function () { var t = utNow(); UT.pump.push(t - lp); lp = t; UT.pumpN++; if (UT.pump.length > 2000) UT.pump.splice(0, 1000); }, 1);
+  function f() { var t = utNow(); UT.raf.push(t - lr); lr = t; UT.rafN++; if (UT.raf.length > 600) UT.raf.splice(0, 300); requestAnimationFrame(f); }
+  if (window.requestAnimationFrame) requestAnimationFrame(f);
+  NS(function () { UT.natRate = UT.natN; UT.pumpRate = UT.pumpN; UT.rafRate = UT.rafN; UT.natN = UT.pumpN = UT.rafN = 0;
+    var el = document.getElementById('utLive'); if (el) el.textContent = 'live: iOS timer ' + UT.natRate + '/s  cheats ' + (window.__rhythmOn ? UT.pumpRate : UT.natRate) + '/s  screen ' + UT.rafRate + 'fps'; }, 1000);
+})();
+// fast sampler that is independent of both the native timer and the pump
+function utSampler(stepMs, fn) {
+  var ch = new MessageChannel(), on = true, last = 0;
+  ch.port1.onmessage = function () { if (!on) return; var t = utNow(); if (t - last >= stepMs) { last = t; fn(t); } ch.port2.postMessage(0); };
+  ch.port2.postMessage(0);
+  return function () { on = false; };
+}
+var UT_FROM = -0xC00, UT_TO = 0x200;
+var UT_CHEATS = [[-0x950, 'steer 8'], [-0x260, 'zoom'], [-0x1c8, 'speed'], [-0x250, 'food'], [-0x238, 'name'], [-0x150, 'bg1'], [-0x140, 'bg2']];
+function utShow(t) {
+  var box = document.getElementById('utBox');
+  document.getElementById('utText').textContent = t; box.style.display = 'block';
+  if (!UT.open) { UT.open = true; setWindowRect(330, 10, 520, 360); }
+}
+function utClose() { document.getElementById('utBox').style.display = 'none'; UT.open = false; setWindowRect(500, 60, 300, 215); }
+function ultimateTest() {
+  if (UT.running) return;
+  if (!baseAddress) { utShow('Press click!! first, in a game.'); return; }
+  UT.base = baseAddress; UT.running = true;
+  var t0 = utNow(), phase = 0, snaps = [], cands = [], series = {}, cheat = {}, stop = null;
+  UT_CHEATS.forEach(function (c) { cheat[c[0]] = []; });
+  // phase 1 (6 s): play normally, keep your zoom where you like it  -> zoom + cheats + timers
+  // phase 2 (1.2 s): circle with your finger -> scan for heading + wanted angle
+  // phase 3 (6 s): keep circling -> sample heading + wanted angle + zoom + cheats every ~4 ms
+  utShow('ULTIMATE TEST  1/3\nPlay normally for 6 s.\nKeep your zoom where you like it.');
+  stop = utSampler(4, function (t) {
+    var el = t - t0;
+    if (phase === 0) {
+      UT_CHEATS.forEach(function (c) { cheat[c[0]].push(utGet(c[0])); });
+      if (el > 6000) { phase = 1; t0 = t; utShow('ULTIMATE TEST  2/3\nNow draw TIGHT CIRCLES with your finger\nand keep going until it says done (8 s).'); }
+    } else if (phase === 1) {
+      if (el > 1500 && snaps.length < 6 && el > 1500 + snaps.length * 200) {
+        var s = {}; for (var o = UT_FROM; o <= UT_TO; o += 8) s[o] = utGet(o); snaps.push(s);
+        if (snaps.length === 6) {
+          for (var o2 = UT_FROM; o2 <= UT_TO; o2 += 8) {
+            var ok = true, ch = 0;
+            for (var j = 0; j < 6; j++) { var v = snaps[j][o2]; if (!(v === v) || Math.abs(v) > 7) { ok = false; break; } if (j && v !== snaps[j - 1][o2]) ch++; }
+            if (ok && ch >= 3) cands.push(o2);
+          }
+          cands = cands.slice(0, 24); cands.forEach(function (c) { series[c] = []; });
+          phase = 2; t0 = t;
+        }
+      }
+    } else if (phase === 2) {
+      cands.forEach(function (c) { series[c].push([t, utGet(c)]); });
+      UT_CHEATS.forEach(function (c) { cheat[c[0]].push(utGet(c[0])); });
+      if (el > 6000) { stop(); UT.running = false; try { utReport(cands, series, cheat); } catch (e) { utShow('ULTIMATE TEST error: ' + e.message); } }
+    }
+  });
+}
+function utAnalyseAngle(s) {
+  // unwrap, per-sample changes only (true game updates), rates over 100 ms
+  var lo = Infinity, hi = -Infinity; s.forEach(function (p) { lo = Math.min(lo, p[1]); hi = Math.max(hi, p[1]); });
+  var un = [], k = 0, ups = [], steps = [], gaps = [], lastT = s[0][0];
+  for (var i = 0; i < s.length; i++) {
+    if (i) { var d = s[i][1] - s[i - 1][1]; if (d > Math.PI) k -= 2 * Math.PI; else if (d < -Math.PI) k += 2 * Math.PI;
+      if (s[i][1] !== s[i - 1][1]) { steps.push(Math.abs(utAngDiff(s[i][1], s[i - 1][1])) * 180 / Math.PI); gaps.push(s[i][0] - lastT); lastT = s[i][0]; } }
+    un.push(s[i][1] + k);
+  }
+  var secs = (s[s.length - 1][0] - s[0][0]) / 1000, total = (un[un.length - 1] - un[0]) * 180 / Math.PI;
+  return { span: hi - lo, un: un, steps: steps, gaps: gaps, upd: steps.length / secs, total: total, avg: Math.abs(total) / secs };
+}
+function utRate(s, un, i, win) { // angular speed (rad/ms) over a window ending at i
+  var j = i; while (j > 0 && s[i][0] - s[j][0] < win) j--; var dt = s[i][0] - s[j][0]; return dt > 0 ? (un[i] - un[j]) / dt : 0;
+}
+function utReport(cands, series, cheat) {
+  var mamu = utGet(-0x1a8), capDeg = mamu * 1000 / 8 * 180 / Math.PI;
+  var A = {}; cands.forEach(function (c) { if (series[c].length > 50) A[c] = utAnalyseAngle(series[c]); });
+  // heading: spans a full circle, updates ~once per frame, turns the most
+  // lagFit(f, l): how well f(t) matches l(t - delay); best delay and mean angle error (deg)
+  function lagFit(fc, lc) {
+    var fs = series[fc], ls = series[lc], best = null;
+    for (var lagMs = 0; lagMs <= 400; lagMs += 8) {
+      var j = 0, sum = 0, m = 0;
+      for (var i = 0; i < fs.length; i += 2) {
+        var tt = fs[i][0] - lagMs; if (tt < ls[0][0]) continue;
+        while (j + 1 < ls.length && ls[j + 1][0] <= tt) j++;
+        sum += Math.abs(utAngDiff(fs[i][1], ls[j][1])); m++;
+      }
+      if (m < 50) continue;
+      var md = sum / m * 180 / Math.PI;
+      if (!best || md < best.md) best = { md: md, lag: lagMs };
+    }
+    return best;
+  }
+  var circ = Object.keys(A).filter(function (c) { var a = A[c]; return a.span > 5.8 && a.span < 6.5 && a.upd > 20; });
+  var head = null, pair = null;
+  // the heading FOLLOWS the wanted angle: pick the pair and direction with a positive delay and the best fit
+  circ.forEach(function (f) { Object.keys(A).forEach(function (l) {
+    if (f === l || A[l].span < 2 || A[l].upd < 10) return;
+    var r = lagFit(f, l); if (!r || r.lag < 8 || r.md > 25) return;
+    if (!pair || r.md < pair.md) pair = { f: f, l: l, md: r.md, lag: r.lag };
+  }); });
+  if (pair) head = pair.f;
+  else if (A['-16'] && circ.indexOf('-16') >= 0) head = '-16';                 // heading seen at -0x10 on both phones
+  else circ.forEach(function (c) { if (!head || Math.abs(A[c].total) > Math.abs(A[head].total)) head = c; });
+  var L = [];
+  var ua = navigator.userAgent, iosv = ((ua.match(/OS ([\d_]+)/) || [])[1] || '?').replace(/_/g, '.');
+  L.push('ULTIMATE TEST v1   iOS(UA) ' + iosv + '   rhythm ' + (window.__rhythmOn ? 'ON' : 'OFF') + '   ' + new Date().toLocaleString());
+  L.push('A TIMERS  iOS 1ms timer ' + UT.natRate + '/s (gap p50 ' + utF(utPct(UT.nat, 50)) + ' p95 ' + utF(utPct(UT.nat, 95)) + ' ms)   cheats ' + (window.__rhythmOn ? UT.pumpRate + '/s (p50 ' + utF(utPct(UT.pump, 50)) + ' p95 ' + utF(utPct(UT.pump, 95)) + ')' : UT.natRate + '/s (on the iOS timer)') + '   screen ' + UT.rafRate + 'fps (p95 ' + utF(utPct(UT.raf, 95)) + ' ms)');
+  if (!head) {
+    L.push('B-D  heading not found - circle the whole time during step 2/3 and run again');
+  } else {
+    var h = A[head], hs = series[head];
+    var turning = h.steps.filter(function (x) { return x > 0.2; }), medStep = utPct(turning, 50);
+    var normal = 0, dbl = 0, tri = 0;
+    turning.forEach(function (x) { var r = x / medStep; if (r < 1.5) normal++; else if (r < 2.5) dbl++; else tri++; });
+    var n = Math.max(1, turning.length), medGap = utPct(h.gaps, 50);
+    var longGaps = h.gaps.filter(function (g) { return g > medGap * 1.5; }).length;
+    var r100 = []; for (var i = 1; i < hs.length; i++) r100.push(Math.abs(utRate(hs, h.un, i, 100)) * 1000 * 180 / Math.PI);
+    L.push('B TURN    heading ' + utHex(+head) + '  avg ' + utF(h.avg) + ' deg/s  (game cap ' + utF(capDeg) + ')  p90 ' + utF(utPct(r100, 90)) + '  turned ' + utF(h.total, 0) + ' deg');
+    L.push('C PACING  game frames ' + utF(h.upd) + '/s  gap ms p50 ' + utF(utPct(h.gaps, 50)) + ' p90 ' + utF(utPct(h.gaps, 90)) + ' max ' + utF(utPct(h.gaps, 100)) + '  long frames ' + utF(100 * longGaps / Math.max(1, h.gaps.length)) + '%   steps: normal ' + utF(100 * normal / n) + '% double ' + utF(100 * dbl / n) + '% triple+ ' + utF(100 * tri / n) + '%');
+    var best = (pair && pair.f === head) ? { c: pair.l, md: pair.md, lag: pair.lag } : null;
+    if (best && best.md < 25) {
+      var w = A[best.c];
+      L.push('D INPUT   wanted angle ' + utHex(+best.c) + '  updates ' + utF(w.upd) + '/s  gap p50 ' + utF(utPct(w.gaps, 50)) + ' p95 ' + utF(utPct(w.gaps, 95)) + ' max ' + utF(utPct(w.gaps, 100)) + ' ms  snake follows your finger after ' + best.lag + ' ms (fit ' + utF(best.md) + ' deg)');
+    } else {
+      L.push('D INPUT   wanted angle not found (closest ' + (best ? utHex(+best.c) + ' off by ' + utF(best.md) + ' deg' : '-') + ') - circle steadily the whole time');
+    }
+  }
+  // zoom + cheats: held % = samples equal to the most common value; flips/s = value changes per second
+  var secsAll = 12;
+  var parts = [];
+  UT_CHEATS.forEach(function (c) {
+    var v = cheat[c[0]].filter(function (x) { return x === x; }); if (!v.length) return;
+    var cnt = {}, top = null; v.forEach(function (x) { cnt[x] = (cnt[x] || 0) + 1; if (top === null || cnt[x] > cnt[top]) top = x; });
+    var flips = 0; for (var i = 1; i < v.length; i++) if (v[i] !== v[i - 1]) flips++;
+    var held = 100 * cnt[top] / v.length;
+    if (c[1] === 'zoom') {
+      var others = Object.keys(cnt).filter(function (k) { return +k !== +top; }).sort(function (a, b) { return cnt[b] - cnt[a]; }).slice(0, 2).map(function (k) { return utF(+k, 3); });
+      L.push('E ZOOM    your value ' + utF(+top, 3) + ' held ' + utF(held) + '% of the time, snapped ' + utF(flips / secsAll) + 'x/s' + (others.length ? ' (game pulls to ' + others.join(', ') + ')' : ''));
+    } else parts.push(c[1] + ' ' + utF(held, 0) + '%' + (flips ? '(' + utF(flips / secsAll) + '/s)' : ''));
+  });
+  L.push('F HELD    ' + parts.join('  ') + '   (bg = game counters, always move)');
+  utShow(L.join('\n'));
+}
+// =================== END ULTIMATE TEST ===================
+</script>
+</body>
+
+</html>

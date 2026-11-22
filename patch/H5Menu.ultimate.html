@@ -787,17 +787,19 @@ function fingerHunt() {
   }
   NT(scanStep, 0);
 }
-function fhFit(head, ang) {   // ang: array aligned with head samples; returns best {md, lag, sgn, off}
-  var best = null, ts = head.map(function (p) { return p[0]; });
-  for (var sgn = 1; sgn >= -1; sgn -= 2) for (var lag = 0; lag <= 600; lag += 12) {
-    var j = 0, ds = [];
-    for (var i = 0; i < head.length; i += 3) {
-      var tt = ts[i] - lag; if (tt < ts[0]) continue;
-      while (j + 1 < ts.length && ts[j + 1] <= tt) j++;
-      if (!(ang[j] === ang[j])) continue;
-      ds.push(utAngDiff(head[i][1], sgn * ang[j]));
+// fit = how far (deg) the heading is from the candidate angle shifted by a delay; lower is better.
+// lags/step let us do a cheap coarse pass first and a fine pass only for the best few.
+function fhFit(head, ang, lags, step) {
+  var best = null, n = head.length;
+  for (var sgn = 1; sgn >= -1; sgn -= 2) for (var li = 0; li < lags.length; li++) {
+    var lag = lags[li], j = 0, ds = [];
+    for (var i = 0; i < n; i += step) {
+      var tt = head[i][0] - lag; if (tt < head[0][0]) continue;
+      while (j + 1 < n && head[j + 1][0] <= tt) j++;
+      var a = ang[j]; if (!(a === a)) continue;
+      ds.push(utAngDiff(head[i][1], sgn * a));
     }
-    if (ds.length < 40) continue;
+    if (ds.length < 30) continue;
     for (var oq = 0; oq < 4; oq++) {
       var off = oq * Math.PI / 2, sum = 0;
       for (var q = 0; q < ds.length; q++) sum += Math.abs(utAngDiff(ds[q], off));
@@ -809,49 +811,56 @@ function fhFit(head, ang) {   // ang: array aligned with head samples; returns b
 }
 function fhUpdates(arr, head) { var c = 0; for (var i = 1; i < arr.length; i++) if (arr[i] !== arr[i - 1]) c++; return c / ((head[head.length - 1][0] - head[0][0]) / 1000); }
 function fhReport(keys, cand, ser, head) {
-  var res = [];
-  var name = function (k) { return keys[k][0] + ' ' + utHex(keys[k][1]); };
-  // the snake's own heading (-0x10) and the server's copy (-0x908) always "match": leave them out
-  var isHead = function (k) { var o = keys[k][1]; return (o >= -0x10 && o < -0x8) || (o >= -0x908 && o < -0x900); };
-  cand = cand.filter(function (k) { return !isHead(k); });
-  // single values as angles
+  var NT = window.setTimeout, name = function (k) { return keys[k][0] + ' ' + utHex(keys[k][1]); };
+  // 1. build the list of angle series to test: single values, and neighbouring pairs as X/Y
+  var tasks = [];
   cand.forEach(function (k) {
-    var a = ser[k]; var lo = Math.min.apply(null, a), hi = Math.max.apply(null, a);
-    if (hi - lo < 1) return;
-    var f = fhFit(head, a); if (f) res.push({ what: name(k) + ' angle', f: f, upd: fhUpdates(a, head) });
-  });
-  // neighbouring pairs as X/Y around their own centre (handles screen coordinates)
-  cand.forEach(function (k) {
-    var step = keys[k][0] === 'F64' ? 8 : 4;
-    var k2 = -1; for (var z = 0; z < cand.length; z++) if (keys[cand[z]][0] === keys[k][0] && keys[cand[z]][1] === keys[k][1] + step) { k2 = cand[z]; break; }
+    var a = ser[k], lo = Infinity, hi = -Infinity; for (var i = 0; i < a.length; i++) { lo = Math.min(lo, a[i]); hi = Math.max(hi, a[i]); }
+    if (hi - lo >= 1) tasks.push({ what: name(k) + ' angle', ang: a, upd: fhUpdates(a, head) });
+    var stepB = keys[k][0] === 'F64' ? 8 : 4, k2 = -1;
+    for (var z = 0; z < cand.length; z++) if (keys[cand[z]][0] === keys[k][0] && keys[cand[z]][1] === keys[k][1] + stepB) { k2 = cand[z]; break; }
     if (k2 < 0) return;
-    var x = ser[k], y = ser[k2], upd = Math.max(fhUpdates(x, head), fhUpdates(y, head));
-    var mx = 0, my = 0, x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
-    for (var i = 0; i < x.length; i++) { mx += x[i]; my += y[i]; x0 = Math.min(x0, x[i]); x1 = Math.max(x1, x[i]); y0 = Math.min(y0, y[i]); y1 = Math.max(y1, y[i]); }
+    var x = a, y = ser[k2], mx = 0, my = 0, x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+    for (var i2 = 0; i2 < x.length; i2++) { mx += x[i2]; my += y[i2]; x0 = Math.min(x0, x[i2]); x1 = Math.max(x1, x[i2]); y0 = Math.min(y0, y[i2]); y1 = Math.max(y1, y[i2]); }
     mx /= x.length; my /= y.length;
-    // centre options: (0,0) = relative to the snake; middle of the thumb's range; average position
-    var centres = [[0, 0, 'rel'], [(x0 + x1) / 2, (y0 + y1) / 2, 'mid'], [mx, my, 'avg']];
-    var bestXY = null, bestYX = null;
-    centres.forEach(function (c) {
-      var a1 = [], a2 = []; for (var i2 = 0; i2 < x.length; i2++) { a1.push(Math.atan2(y[i2] - c[1], x[i2] - c[0])); a2.push(Math.atan2(x[i2] - c[0], y[i2] - c[1])); }
-      var f1 = fhFit(head, a1), f2 = fhFit(head, a2);
-      if (f1 && (!bestXY || f1.md < bestXY.f.md)) bestXY = { f: f1, c: c[2] };
-      if (f2 && (!bestYX || f2.md < bestYX.f.md)) bestYX = { f: f2, c: c[2] };
+    var upd = Math.max(fhUpdates(x, head), fhUpdates(y, head));
+    [[0, 0, 'rel'], [(x0 + x1) / 2, (y0 + y1) / 2, 'mid'], [mx, my, 'avg']].forEach(function (c) {
+      var a1 = [], a2 = [];
+      for (var i3 = 0; i3 < x.length; i3++) { a1.push(Math.atan2(y[i3] - c[1], x[i3] - c[0])); a2.push(Math.atan2(x[i3] - c[0], y[i3] - c[1])); }
+      tasks.push({ what: name(k) + '/' + utHex(keys[k2][1]) + ' X/Y(' + c[2] + ')', ang: a1, upd: upd });
+      tasks.push({ what: name(k2) + '/' + utHex(keys[k][1]) + ' Y/X(' + c[2] + ')', ang: a2, upd: upd });
     });
-    if (bestXY) res.push({ what: name(k) + '/' + utHex(keys[k2][1]) + ' X/Y(' + bestXY.c + ')', f: bestXY.f, upd: upd });
-    if (bestYX) res.push({ what: name(k2) + '/' + utHex(keys[k][1]) + ' Y/X(' + bestYX.c + ')', f: bestYX.f, upd: upd });
   });
-  res = res.filter(function (r) { return r.f.lag >= 12; });   // the finger leads; the snake follows
-  res.sort(function (a, b) { return a.f.md - b.f.md; });
-  var hs = head.length / ((head[head.length - 1][0] - head[0][0]) / 1000);
-  var L = ['FINGER HUNT  ' + cand.length + ' moving values, ' + res.length + ' tested, sampled ' + utF(hs) + '/s',
-           'rank: where | fit (deg off, lower=better) | snake follows after | updates/s'];
-  res.slice(0, 5).forEach(function (r, i) {
-    L.push((i + 1) + '. ' + r.what + (r.f.sgn < 0 ? ' mirrored' : '') + (r.f.off ? ' +' + r.f.off + 'deg' : '') + ' | ' + utF(r.f.md) + ' | ' + r.f.lag + ' ms | ' + utF(r.upd));
-  });
-  if (res.length && res[0].f.md < 20) L.push('=> FOUND: snake follows your finger after ~' + res[0].f.lag + ' ms; touches update ' + utF(res[0].upd) + '/s');
-  else L.push('=> no clear match (best fit should be under 20 deg). Circle slower and smoother and run again.');
-  utShow(L.join('\n'));
+  // 2. coarse pass in small chunks (few delays, every 6th sample), with progress
+  var coarseLags = []; for (var l = 0; l <= 600; l += 48) coarseLags.push(l);
+  var ti = 0;
+  function coarse() {
+    var endT = Math.min(tasks.length, ti + 4);
+    for (; ti < endT; ti++) tasks[ti].c = fhFit(head, tasks[ti].ang, coarseLags, 6);
+    utPrompt('HUNT analysing ' + Math.round(100 * ti / Math.max(1, tasks.length) * 0.7) + '%');
+    if (ti < tasks.length) { NT(coarse, 0); return; }
+    // 3. fine pass for the 8 best (all delays 0..600 in 12 ms steps, every 2nd sample)
+    var top = tasks.filter(function (t) { return t.c; }).sort(function (a, b) { return a.c.md - b.c.md; }).slice(0, 8);
+    var fineLags = []; for (var l2 = 0; l2 <= 600; l2 += 12) fineLags.push(l2);
+    var fi = 0;
+    function fine() {
+      if (fi < top.length) { top[fi].f = fhFit(head, top[fi].ang, fineLags, 2); fi++; utPrompt('HUNT analysing ' + (70 + Math.round(30 * fi / top.length)) + '%'); NT(fine, 0); return; }
+      utPrompt('');
+      var res = top.filter(function (t) { return t.f && t.f.lag >= 12; }).sort(function (a, b) { return a.f.md - b.f.md; });
+      var hs = head.length / ((head[head.length - 1][0] - head[0][0]) / 1000);
+      var L = ['FINGER HUNT  ' + cand.length + ' moving values, ' + tasks.length + ' tested, sampled ' + utF(hs) + '/s',
+               'rank: where | fit (deg off, lower=better) | snake follows after | updates/s'];
+      res.slice(0, 5).forEach(function (r, i) {
+        L.push((i + 1) + '. ' + r.what + (r.f.sgn < 0 ? ' mirrored' : '') + (r.f.off ? ' +' + r.f.off + 'deg' : '') + ' | ' + utF(r.f.md) + ' | ' + r.f.lag + ' ms | ' + utF(r.upd));
+      });
+      if (res.length && res[0].f.md < 20) L.push('=> FOUND: snake follows your finger after ~' + res[0].f.lag + ' ms; touches update ' + utF(res[0].upd) + '/s');
+      else L.push('=> no clear match (best fit should be under 20 deg). Circle slower and smoother and run again.');
+      utShow(L.join('\n'));
+    }
+    fine();
+  }
+  utPrompt('HUNT analysing 0%');
+  NT(coarse, 0);
 }
 // =================== END FINGER HUNT ===================
 </script>
